@@ -1,0 +1,27 @@
+# this is a test wad list
+ m_mplayr.lmp # this is a test comment...
+m_splayr.lmp
+m_setup.lmp
+m_auto.lmp
+m_butt1.lmp
+m_butt2.lmp
+m_chat.lmp
+m_enem.lmp
+m_keybnd.lmp
+m_mess.lmp
+m_stat.lmp
+m_weap.lmp
+m_setttl.lmp
+m_joingm.lmp
+m_mplttl.lmp
+m_strtgm.lmp
+m_psetup.lmp
+m_game.lmp
+m_epi1.lmp
+m_horsen.lmp
+m_versen.lmp
+m_disres.lmp
+m_fulscr.lmp
+m_music.lmp
+aboxskin.lmp
+	# this is also a test comment...

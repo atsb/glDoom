@@ -1,0 +1,9 @@
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.ncb
+*.wad
+.svn/
+*.suo
+*.dbg
+.vs/
