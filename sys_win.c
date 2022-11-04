@@ -85,7 +85,6 @@ extern devinfo_t DevInfo;
 
 //#define RENDER_GL       0
 //#define RENDER_D3D      1 
-//André's TODO: Add Both on Visual Studio...
 
 #define KS_KEYUP        0
 #define KS_KEYDOWN    255
