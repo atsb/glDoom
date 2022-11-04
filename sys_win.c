@@ -81,10 +81,10 @@ extern devinfo_t DevInfo;
 
 #define MUSIC_NONE      0
 #define MUSIC_CDAUDIO   1
-#define MUSIC_MIDI      2
+#define MUSIC_MIDI 
 
-#define RENDER_GL       0
-#define RENDER_D3D      1
+//#define RENDER_GL       0
+//#define RENDER_D3D      1 
 
 #define KS_KEYUP        0
 #define KS_KEYDOWN    255
