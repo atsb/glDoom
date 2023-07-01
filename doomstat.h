@@ -65,7 +65,10 @@ extern GameMission_t	gamemission;
 extern  dboolean	modifiedgame;
 
 // [crispy] Sigil
-extern boolean haved1e5;
+extern dboolean haved1e5;
+
+// NRFTL
+extern dboolean havenerve;
 
 // -------------------------------------------
 // Language.

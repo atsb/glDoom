@@ -43,4 +43,7 @@ Language_t   language = english;
 dboolean	modifiedgame;
 
 // [crispy] Sigil
-boolean haved1e5;
+dboolean haved1e5;
+
+// NRFTL
+dboolean havenerve;

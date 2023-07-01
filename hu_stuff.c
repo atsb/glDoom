@@ -54,6 +54,7 @@ rcsid[] = "$Id: hu_stuff.c,v 1.4 1997/02/03 16:47:52 b1 Exp $";
 //
 #define HU_TITLE	(mapnames[(gameepisode-1)*9+gamemap-1])
 #define HU_TITLE2	(mapnames2[gamemap-1])
+#define HU_TITLEN	(mapnamesn[gamemap-1])
 #define HU_TITLEP	(mapnamesp[gamemap-1])
 #define HU_TITLET	(mapnamest[gamemap-1])
 #define HU_TITLEHEIGHT	1
@@ -230,6 +231,18 @@ char*	mapnames2[] =	// DOOM 2 map names.
     HUSTR_32
 };
 
+char* mapnamesn[] =	// NRFTL map names.
+{
+    NHUSTR_1,
+    NHUSTR_2,
+    NHUSTR_3,
+    NHUSTR_4,
+    NHUSTR_5,
+    NHUSTR_6,
+    NHUSTR_7,
+    NHUSTR_8,
+    NHUSTR_9
+};
 
 char*	mapnamesp[] =	// Plutonia WAD map names.
 {
@@ -305,7 +318,13 @@ char *mapnamest[] =	// TNT WAD map names.
     THUSTR_29,
     THUSTR_30,
     THUSTR_31,
-    THUSTR_32
+    THUSTR_32,
+
+    // Emulation: TNT maps 33-35 can be warped to and played if they exist
+    // so include blank names instead of spilling over
+    "",
+    "",
+    ""
 };
 
 
@@ -556,6 +575,8 @@ void HU_Start(void)
              s = HU_TITLET;
          else
              s = HU_TITLE2;
+         if (havenerve == true)
+             s = HU_TITLEN;
 	 break;
     }
     
