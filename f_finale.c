@@ -22,9 +22,10 @@
 //-----------------------------------------------------------------------------
 
 
-#include <windows.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
+//#include <windows.h>
+//#include <gl/gl.h>
+//#include <gl/glu.h>
+#include "thirdparty/glad/include/glad/glad.h"
 
 static const char
 rcsid[] = "$Id: f_finale.c,v 1.5 1997/02/03 21:26:34 b1 Exp $";
@@ -49,7 +50,7 @@ rcsid[] = "$Id: f_finale.c,v 1.5 1997/02/03 21:26:34 b1 Exp $";
 
 #include "gldefs.h"
 #include "gl_utils.h"
-#include "sys_win.h"
+#include "sys_sdl.h"
 
 void GL_DrawFullScreen(GLTexData *Image);
 void GL_DrawPatch(GLTexData *Tex, float x, float y);
@@ -92,6 +93,7 @@ char*	e1text = E1TEXT;
 char*	e2text = E2TEXT;
 char*	e3text = E3TEXT;
 char*	e4text = E4TEXT;
+char*   e5text = E5TEXT;
 
 char*	c1text = C1TEXT;
 char*	c2text = C2TEXT;
@@ -167,6 +169,10 @@ void F_StartFinale (void)
 	    finaleflat = "MFLR8_3";
 	    finaletext = e4text;
 	    break;
+      case 5:
+        finaleflat = "FLOOR7_2";
+        finaletext = e5text;
+        break;
 	  default:
 	    // Ouch.
 	    break;
@@ -357,7 +363,6 @@ extern	patch_t *hu_font[HU_FONTSIZE];
 // This will take a flat ONLY
 void GL_TileBackground(DW_TexList *tex)
    {
-    float   Left, Bottom, Top, Right;
     float   rtc, ttc;
     
     rtc = 320.0f/64.0f;
@@ -382,10 +387,8 @@ void GL_TileBackground(DW_TexList *tex)
 
 void GL_F_TextWrite (void)
    {
-    byte*	src;
-    byte*	dest;
     
-    int		x,y,w;
+    int		x,y;
     int		count;
     char*	ch;
     int		c;
@@ -779,7 +782,6 @@ void GL_F_CastDrawer (void)
     spriteframe_t*	sprframe;
     int			lump, ch;
     dboolean		flip;
-    patch_t*		patch;
     float       TextWidth;
     char        c;
     float       fTop, fBottom, fOffset, x1, x2;
@@ -925,10 +927,6 @@ F_DrawPatchCol
 void GL_F_BunnyScroll (void)
 {
     int		scrolled;
-    int		x, xx;
-    patch_t*	p1;
-    patch_t*	p2;
-    char	name[10];
     int		stage;
     static int	laststage;
     int     lx, rx;
@@ -1231,9 +1229,15 @@ void F_Drawer (void)
 	    V_DrawPatch (0,0,0,
 			 W_CacheLumpName("ENDPIC",PU_CACHE));
 	    break;
-	}
-    }
-			
+        // [crispy] Sigil
+      case 5:
+          V_DrawPatch(0, 0, 0,
+              W_CacheLumpName("SIGILEND", PU_CACHE));
+          break;
+      default:
+          return;
+        }
+	}	
 }
 
 void F_Init()

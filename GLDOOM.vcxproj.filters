@@ -42,9 +42,6 @@
     <ClCompile Include="dstrings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dxerr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="f_finale.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -52,9 +49,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="g_game.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="gconsole.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GL_utils.c">
@@ -72,12 +66,6 @@
     <ClCompile Include="hu_stuff.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="i_cd.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="i_midi.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="i_net.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -85,9 +73,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="info.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lights.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="m_argv.c">
@@ -106,9 +91,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="m_misc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="m_music.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="m_random.c">
@@ -207,7 +189,7 @@
     <ClCompile Include="savepic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="snd_dx.c">
+    <ClCompile Include="i_sound.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sounds.c">
@@ -219,7 +201,7 @@
     <ClCompile Include="st_stuff.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sys_win.c">
+    <ClCompile Include="sys_sdl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tables.c">
@@ -234,22 +216,31 @@
     <ClCompile Include="wi_stuff.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win_inpt.c">
+    <ClCompile Include="sdl_input.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win_joy.c">
+    <ClCompile Include="sdl_kbrd.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win_kbrd.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="win_mous.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="win_video.c">
+    <ClCompile Include="sdl_video.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="z_zone.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="thirdparty\glad\src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mmus2mid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="i_sdlsound.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="i_sdlmusic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gl_wipe.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -313,9 +304,6 @@
     <ClInclude Include="dstrings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dxerr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="f_finale.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -323,9 +311,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="g_game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gconsole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gl_utils.h">
@@ -344,12 +329,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="hu_stuff.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="i_cd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="i_midi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="i_net.h">
@@ -383,9 +362,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="m_misc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="m_music.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="m_random.h">
@@ -466,7 +442,7 @@
     <ClInclude Include="st_stuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sys_win.h">
+    <ClInclude Include="sys_sdl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tables.h">
@@ -481,19 +457,13 @@
     <ClInclude Include="wi_stuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win_inpt.h">
+    <ClInclude Include="sdl_inpt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win_joy.h">
+    <ClInclude Include="sdl_kbrd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="win_kbrd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="win_mous.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="win_video.h">
+    <ClInclude Include="sdl_video.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="z_zone.h">
@@ -503,6 +473,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mmus2mid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -516,14 +489,21 @@
     <None Include="Playpal.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="docs\gldoom.doc" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="controls.txt" />
-    <Text Include="doomflaw.txt" />
-    <Text Include="doomnet.txt" />
-    <Text Include="newlumps.txt" />
-    <Text Include="relnotes_94e.txt" />
-    <Text Include="TodoList.txt" />
+    <Text Include="docs\changelog.txt" />
+    <Text Include="docs\controls.txt" />
+    <Text Include="docs\doomflaw.txt" />
+    <Text Include="docs\DOOMLIC.TXT" />
+    <Text Include="docs\newlumps.txt" />
+    <Text Include="docs\readme.bal.txt" />
+    <Text Include="docs\readme.bill.txt" />
+    <Text Include="docs\readme.dos.txt" />
+    <Text Include="docs\readme.matrox.txt" />
+    <Text Include="docs\relnotes_94d.txt" />
+    <Text Include="docs\relnotes_94e.txt" />
+    <Text Include="docs\TodoList.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="glDoom.ico">

@@ -27,8 +27,7 @@
 
 static const char rcsid[] = "$Id: d_main.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
-#include <windows.h>
-#include <gl/gl.h>
+#include "thirdparty/glad/include/glad/glad.h"
 
 #define	BGCOLOR		7
 #define	FGCOLOR		8
@@ -43,9 +42,16 @@ static const char rcsid[] = "$Id: d_main.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 #include <unistd.h>
 #endif
 
-#include <direct.h>
+//#include <direct.h>
 #include <malloc.h>
+#ifdef _WIN32
 #include <io.h>
+#include <direct.h>
+#else
+#include <inttypes.h>
+#include <unistd.h>
+#include <dirent.h>
+#endif
 
 
 #include "doomdef.h"
@@ -86,7 +92,6 @@ static const char rcsid[] = "$Id: d_main.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
 #include "d_console.h"
 #include "gldefs.h"
-#include "gconsole.h"
 #include "gl_video.h"
 #include "doomlib.h"
 
@@ -153,11 +158,10 @@ extern      int nosound, nosound_t;
 
 char		wadfile[1024];		// primary wad file
 char		mapdir[1024];           // directory of development maps
-char		basedefault[1024];      // default file
+char	*basedefault = "default.cfg";      // default file
 
 
 void D_CheckNetGame (void);
-void D_ProcessEvents (void);
 void G_BuildTiccmd (ticcmd_t* cmd);
 void D_DoAdvanceDemo (void);
 
@@ -184,19 +188,13 @@ void D_PostEvent (event_t* ev)
     eventhead = (++eventhead)&(MAXEVENTS-1);
    }
 
-
-//
-// D_ProcessEvents
-// Send all the events of the given timestamp down the responder chain
-//
-
-void D_ProcessEvents (void)
-   {
+void D_ProcessEvents(void)
+{
     event_t*	ev;
     // IF STORE DEMO, DO NOT ACCEPT INPUT
     if (( gamemode == commercial ) && (W_CheckNumForName("map01")<0))
         return;
-	
+
     for (; eventtail != eventhead; eventtail = (++eventtail)&(MAXEVENTS-1))
        {
         ev = &events[eventtail];
@@ -210,8 +208,7 @@ void D_ProcessEvents (void)
            }
         G_Responder(ev);
        }
-   }
-
+}
 
 
 
@@ -241,6 +238,43 @@ extern  int             showMessages;
 void R_ExecuteSetViewSize (void);
 extern  int             hudmode;
 
+void I_uSleep(unsigned long usecs)
+{
+    SDL_Delay(usecs / 1000);
+}
+
+//
+// D_Wipe
+//
+// CPhipps - moved the screen wipe code from D_Display to here
+// The screens to wipe between are already stored, this just does the timing
+// and screen updating
+
+static void D_Wipe(void)
+{
+    dboolean done;
+    int wipestart = I_GetTime() - 1;
+
+    //glClear(GL_COLOR_BUFFER_BIT);
+
+    do
+    {
+        int nowtime, tics;
+        do
+        {
+            I_uSleep(5000); // CPhipps - don't thrash cpu in this loop
+            nowtime = I_GetTime();
+            tics = nowtime - wipestart;
+        } while (!tics);
+        wipestart = nowtime;
+        done = wipe_ScreenWipe(tics);
+        I_UpdateNoBlit();
+        M_Drawer();                   // menu is drawn even on top of wipes
+        I_FinishUpdate();             // page flip or blit buffer
+
+    } while (!done);
+}
+
 void D_Display (void)
    {
     static  dboolean		viewactivestate = false;
@@ -249,10 +283,6 @@ void D_Display (void)
     static  dboolean		fullscreen = false;
     static  gamestate_t		oldgamestate = -1;
     static  int			borderdrawcount;
-    int				nowtime;
-    int				tics;
-    int				wipestart;
-    dboolean			done;
     dboolean			wipe;
     dboolean			redrawsbar;
 
@@ -270,13 +300,10 @@ void D_Display (void)
        }
 
     // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
+    if ((wipe = (gamestate != wipegamestate)))
        {
-        wipe = true;
-        wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+        wipe_StartScreen();
        }
-    else
-       wipe = false;
 
     if (gamestate == GS_LEVEL && gametic)
        {
@@ -291,7 +318,7 @@ void D_Display (void)
                  break;
              if (automapactive)
                 {
-                 AM_Drawer ();
+                 //AM_Drawer ();
                  GL_AM_Drawer();
                  GL_DrawStatusBar(1);
                 }
@@ -299,7 +326,7 @@ void D_Display (void)
                  redrawsbar = true;
              if (inhelpscreensstate && !inhelpscreens)
                  redrawsbar = true;              // just put away the help screen
-             ST_Drawer(viewheight == SCREENHEIGHT, redrawsbar );
+             //ST_Drawer(viewheight == SCREENHEIGHT, redrawsbar );
              fullscreen = viewheight == SCREENHEIGHT;
              if (!automapactive)
                 {
@@ -309,23 +336,23 @@ void D_Display (void)
              break;
 
         case GS_INTERMISSION:
-             WI_Drawer();
+             //WI_Drawer();
              GL_WI_Drawer();
              break;
 
         case GS_FINALE:
-             F_Drawer();
+             //F_Drawer();
              GL_F_Drawer();
              break;
 
         case GS_DEMOSCREEN:
-             D_PageDrawer();
+             //D_PageDrawer();
              GL_DrawFullScreen(glPageName);
              break;
        }
     
     // draw buffered stuff to screen
-    I_UpdateNoBlit();
+    //I_UpdateNoBlit();   // UNUSED
     
     // draw the view directly
     if (gamestate == GS_LEVEL && !automapactive && gametic)
@@ -339,15 +366,16 @@ void D_Display (void)
 
     if (gamestate == GS_LEVEL && gametic)
        {
-        HU_Drawer ();
+        //HU_Drawer ();
         GL_HU_Drawer();
        }
-    
+#if 0
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
        {
         I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
        }
+
 
     // see if the border needs to be initially drawn
     if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
@@ -357,6 +385,7 @@ void D_Display (void)
        }
 
     // see if the border needs to be updated to the screen
+
     if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != SCREENWIDTH && viewheight != SCREENHEIGHT)
        {
         if (menuactive || menuactivestate || !viewactivestate)
@@ -367,6 +396,7 @@ void D_Display (void)
             borderdrawcount--;
            }
        }
+#endif
 
     menuactivestate = menuactive;
     viewactivestate = viewactive;
@@ -386,7 +416,7 @@ void D_Display (void)
 */
        }
     // menus go directly to the screen
-    M_Drawer ();          // menu is drawn even on top of everything
+    //M_Drawer ();          // UNUSED
 
     glmode = gl_2d;
 
@@ -396,39 +426,24 @@ void D_Display (void)
        {
         GL_DrawConsole();
        }
-    //CO_Drawer();          // Console is drawn on top of even the menu...
-    NetUpdate ();         // send out any new accumulation
 
-// FIXME... This disables the screen wipe... (I think)
-    wipe = false;
+    // Console is drawn on top of even the menu...
+    // 
+    //CO_Drawer();          // UNUSED
+
+    NetUpdate ();         // send out any new accumulation
 
     // normal update
     if (!wipe)
        {
         I_FinishUpdate ();              // page flip or blit buffer
-        return;
        }
-    
-    // wipe update
-    wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
-
-    wipestart = I_GetTime () - 1;
-    do
-       {
-        do
-           {
-            nowtime = I_GetTime ();
-            tics = nowtime - wipestart;
-           }
-        while(!tics);
-        wipestart = nowtime;
-        done = wipe_ScreenWipe(wipe_Melt, 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
-        I_UpdateNoBlit ();
-        M_Drawer ();                            // menu is drawn even on top of wipes
-        //CO_Drawer();                            // Console is drawn on top of even the menu...
-        I_FinishUpdate ();                      // page flip or blit buffer
-       }
-    while(!done);
+    else
+    {
+        wipe_EndScreen();
+        D_Wipe();
+    }
+  
    }
 
 GLTexData PauseTexData;
@@ -488,6 +503,8 @@ extern  dboolean         demorecording;
 
 void D_DoomLoop (void)
    {
+    // UNUSED
+#if 0
     if (demorecording)
         G_BeginRecording ();
 		
@@ -540,6 +557,7 @@ void D_DoomLoop (void)
         //I_SubmitSound();
 #endif
        }
+#endif
    }
 
 void MY_DoomSetup(void)
@@ -565,7 +583,8 @@ void MY_DoomLoop (void)
     I_StartFrame();
 	
     // process one or more tics
-    if (singletics)
+
+    if (singletics) // used for demos
        {
         I_StartTic();
         D_ProcessEvents();
@@ -588,16 +607,6 @@ void MY_DoomLoop (void)
     S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
     // Update display, next frame, with current state.
     D_Display();
-
-#ifndef SNDSERV
-    // Sound mixing for the buffer is snychronous.
-    //I_UpdateSound();
-#endif	
-    // Synchronous sound output is explicitly called.
-#ifndef SNDINTR
-    // Update sound output.
-    //I_SubmitSound();
-#endif
    }
 
 
@@ -628,9 +637,9 @@ void D_PageTicker (void)
 void D_PageDrawer (void)
 {
     int i;
-    __int64 *d;
+    long long *d;
 
-    d = (__int64 *)screens[0];
+    d = (long long*)screens[0];
     for (i = 0; i < ((SCREENWIDTH*SCREENHEIGHT)/8); i++)
        d[i] = 0;
 
@@ -841,8 +850,8 @@ dboolean CheckGameMode()
 
     e = W_CheckNumForName("playpal");
 
-    con_printf("Determining game mode...\n");
-    con_printf("Checking for Doom 2/Final Doom...\n");
+    printf("Determining game mode...\n");
+    printf("Checking for Doom 2/Final Doom...\n");
     // check for Doom2/Final Doom lumps here
     for (m = 1, bValid = true; m < 33; m++)
        {
@@ -866,10 +875,10 @@ dboolean CheckGameMode()
        }
     if (gamemode == commercial)
        {
-        con_printf("HEY! - This is NOT Doom 2 or Final Doom!!!\n");
+        printf("HEY! - This is NOT Doom 2 or Final Doom!!!\n");
        }
-
-    con_printf("Checking for Ultimate Doom...\n");
+    
+    printf("Checking for Ultimate Doom...\n");
     // check for Ultimate Doom lumps here
     for (e = 4, m = 1, bValid = true; m < 10; m++)
        {
@@ -893,11 +902,11 @@ dboolean CheckGameMode()
        }
     if (gamemode == retail)
        {
-        con_printf("HEY! - This is NOT Ultimate Doom!!!\n");
+        printf("HEY! - This is NOT Ultimate Doom!!!\n");
        }
 
 
-    con_printf("Checking for Registered Doom...\n");
+    printf("Checking for Registered Doom...\n");
     // check for Registered Doom lumps here
     for (e = 2, bValid = true; ((e < 4) && (bValid == true)); e++)
        {
@@ -924,10 +933,10 @@ dboolean CheckGameMode()
 
     if (gamemode == registered)
        {
-        con_printf("HEY! - This is NOT the REGISTERED version of Doom!!!\n");
+        printf("HEY! - This is NOT the REGISTERED version of Doom!!!\n");
        }
 
-    con_printf("Checking for Shareware Doom...\n");
+    printf("Checking for Shareware Doom...\n");
     // check for shareware lumps here
     for (e = 1, m = 1, bValid = true; m < 10; m++)
        {
@@ -947,7 +956,7 @@ dboolean CheckGameMode()
        }
     if (gamemode == registered)
        {
-        con_printf("HEY! - This isn't even the SHAREWARE version of Doom!!!\n");
+        printf("HEY! - This isn't even the SHAREWARE version of Doom!!!\n");
        }
 
     gamemode = undetermined;
@@ -978,31 +987,31 @@ char *szGameNames[] = { "Doom 2 - French",  // Not francaise - we speak ENGLISH 
                         "Shareware Doom" };
 
 
-struct _finddata_t finddata;
+//struct _finddata_t finddata;
 long   search_handle;
 
 char *D_FindFirst( char *filespec )
    {
-    if ((search_handle = _findfirst( filespec, &finddata)) != -1)
+    /*if ((search_handle = _findfirst( filespec, &finddata)) != -1)
        {
         return finddata.name;
        }
     else
        {
         return NULL;
-       }
+       }*/
    }
 
 char *D_FindNext()
    {
-    if (_findnext(search_handle, &finddata) != -1)
+    /*if (_findnext(search_handle, &finddata) != -1)
        {
         return finddata.name;
        }
     else
        {
         return NULL;
-       }
+       }*/
    }
 
 //
@@ -1013,11 +1022,15 @@ char *D_FindNext()
 //
 void IdentifyVersion (void)
    {
-    char    doomwad[_MAX_PATH], *c;
-    char   *doomwaddir, id[4];
+#ifdef __linux__
+    char*    doomwad;
+#endif
+    char tempbuf[16];
+#ifdef __linux__
+    char* candidate;
+#endif
     int     i;
-    struct  _stat buf;
-    FILE   *fh;
+    //struct  _stat buf;
 
 #ifdef NORMALUNIX
     char   *home;
@@ -1029,14 +1042,14 @@ void IdentifyVersion (void)
     sprintf(basedefault, "%s/.doomrc", home);
 #endif
 
-    i = M_CheckParm("-game");
-    if (i && (i < (myargc-1)))
+    //i = M_CheckParm("-game");
+    /*if (i && (i < (myargc-1)))
        {
         strcpy(gamename, myargv[i+1]);
         sprintf(doomwad, "%s.wad", noext(basename(gamename)));
-        if (_access(doomwad, R_OK))
+        if (access(doomwad, R_OK))
            {
-            _stat(gamename, &buf);
+            stat(gamename, &buf);
             if (buf.st_mode & _S_IFDIR)
                {
                 con_printf("-game points to a directory [%s]\n", gamename);
@@ -1101,7 +1114,7 @@ void IdentifyVersion (void)
                     strcat(gamename, ".wad");
                    }
                 // found a matching wad name - check to see if it exists
-                if (!_access(gamename, R_OK))
+                if (!Access(gamename, R_OK))
                    {
                     // found a WAD and it exists. Let's use it. 
                     con_printf("Game mode %s selected\n", szGameNames[i]);
@@ -1121,7 +1134,7 @@ void IdentifyVersion (void)
     if (strlen(gamename) > 0)
        {
         con_printf("Standard game not specified - checking.\n");
-        if (!_access(gamename, R_OK))
+        if (!Access(gamename, R_OK))
            {
             con_printf("Wad file exists determining \"mode\"...\n");
             D_AddFile(gamename);
@@ -1134,26 +1147,53 @@ void IdentifyVersion (void)
     else
        {
         con_printf("No game wad specified - looking for standard WADs...\n");
-       }
+       }*/
 
-    doomwaddir = getenv("DOOMWADDIR");
+    //doomwaddir = getenv("DOOMWADDIR");
+    
+    /*_getcwd(doomwaddir, _MAX_PATH);
+       
     if (!doomwaddir)
-       {
-        doomwaddir = getenv("DOOMDIR");
-       }
-    if (!doomwaddir)
-        doomwaddir = ".";
+        doomwaddir = ".";*/
 
     for (i = 0; i < gw_other; i++)
        {
-        sprintf(doomwad, "%s/%s.wad", doomwaddir, szWadNames[i]);
-        if ( !_access(doomwad,R_OK) )
+
+#if _WIN32
+        sprintf(tempbuf, "%s.wad", szWadNames[i]);
+#else
+        DIR* cwd = opendir(".");
+        if (cwd == NULL)
+            I_Error("IdentifyVersion: Failed to open current directoy");
+
+        struct dirent* cur_file;
+        cur_file = readdir(cwd);
+
+        while (cur_file)
+        {
+            if (cur_file->d_type == DT_REG)
+            {
+                candidate = cur_file->d_name;
+                sprintf(tempbuf, "%s.wad", szWadNames[i]);
+                if (!strncasecmp(candidate, tempbuf, strlen(candidate)))
+                {
+                    doomwad = candidate;
+                    break;
+                }
+            }
+            cur_file = readdir(cwd);
+        }
+
+        closedir(cwd);
+#endif
+
+        if ( !Access(tempbuf, R_OK))
            {
-            con_printf("Found game WAD for: %s\n", szGameNames[i]);
+            printf("Found game WAD for: %s\n", szGameNames[i]);
             strcpy(gamename, szWadNames[i]);
             gamemode = iGameModes[i];
             language = iLanguages[i];
-            D_AddFile(doomwad);
+            D_AddFile(tempbuf);
             return;
            }
        }
@@ -1272,10 +1312,10 @@ void FindResponseFile(void)
             handle = fopen (&myargv[i][1],"rb");
             if (!handle)
                {
-                con_printf ("Response file [%s] doesn't exist...\n", &myargv[i][1]);
+              printf ("Response file [%s] doesn't exist...\n", &myargv[i][1]);
                 return;
                }
-            con_printf("Found response file %s!\n", &myargv[i][1]);
+            printf("Found response file %s!\n", &myargv[i][1]);
             while (fgets(readline, 255, handle) != NULL)
                {
                 linetext = D_PrepTextLine(readline);
@@ -1303,28 +1343,32 @@ void FindResponseFile(void)
 void D_DoomMain (void)
    {
     int             p;
-    char                    file[256];
+    char            file[256];
+#ifdef __linux__
+    char*           candidate;
+#endif
     byte           *demover;
 
     //FindResponseFile();
 	
-    con_printf("M_loadDefaults: Load system defaults.\n");
+    printf("M_loadDefaults: Load system defaults.\n");
     M_LoadDefaults (); // load before initing other systems
 
     IdentifyVersion();
 
     if (gamemode == undetermined)
        {
-        return;
+         printf("No official IWAD found!\n");
+         return;
        }
 	
-    if (D_strcasecmp(noext(basename(gamename)), "tnt") == 0)
+    if (strcasecmp(noext(basename(gamename)), "tnt") == 0)
        {
         tnt = true;
         plutonia = false;
        }
 
-    if (D_strcasecmp(noext(basename(gamename)), "plutonia") == 0)
+    if (strcasecmp(noext(basename(gamename)), "plutonia") == 0)
        {
         tnt = false;
         plutonia = true;
@@ -1350,14 +1394,14 @@ void D_DoomMain (void)
        }
 
     if (devparm)
-        con_printf(D_DEVSTR);
+        printf(D_DEVSTR);
     
     if (M_CheckParm("-cdrom"))
        {
-        con_printf(D_CDROM);
-        //mkdir("c:\\doomdata",0); // What's the ",0" for? Oh yeah, permissions...
-        _mkdir("c:\\doomdata");
-        strcpy (basedefault,"c:/doomdata/default.cfg");
+        //con_printf(D_CDROM);
+        ////mkdir("c:\\doomdata",0); // What's the ",0" for? Oh yeah, permissions...
+        ////_mkdir("c:\\doomdata");
+        //strcpy (basedefault,"default.cfg");
        }	
     
     // turbo option
@@ -1381,7 +1425,33 @@ void D_DoomMain (void)
        }
 
     // Add the glDoom PWAD that contains the new resources...
+#if _WIN32
     D_AddFile("./glDoom.wad");
+#else
+    DIR* cwd = opendir(".");
+        if (cwd == NULL)
+            I_Error("D_DoomMain(): failed to open current directoy");
+
+        struct dirent* cur_file;
+        cur_file = readdir(cwd);
+
+        while (cur_file)
+        {
+            if (cur_file->d_type == DT_REG)
+            {
+                candidate = cur_file->d_name;
+                
+                if (!strncasecmp(candidate, "gldoom.wad", strlen("gldoom.wad")))
+                {
+                    D_AddFile(candidate);
+                    break;
+                }
+            }
+            cur_file = readdir(cwd);
+        }
+
+        closedir(cwd);
+#endif
     
     // add any files specified on the command line with -file wadfile
     // to the wad list
@@ -1428,7 +1498,7 @@ void D_DoomMain (void)
        {
         if (gamemode == shareware)
            {
-            con_printf("\nYou cannot -file with the shareware version. Register!\n\n");
+            printf("\nYou cannot -file with the shareware version. Register!\n\n");
            }
         else
            {
@@ -1471,11 +1541,11 @@ void D_DoomMain (void)
            {
 	        sprintf (file,"%s.lmp", myargv[p+1]);
 	        D_AddFile (file);
-	        con_printf("Playing demo %s.lmp.\n",myargv[p+1]);
+	        printf("Playing demo %s.lmp.\n",myargv[p+1]);
            }
         else
            {
-	        con_printf("Playing demo II %s.dem.\n",myargv[p+1]);
+	        printf("Playing demo II %s.dem.\n",myargv[p+1]);
            }
        }
     
@@ -1505,12 +1575,12 @@ void D_DoomMain (void)
        {
 	    int     frags;
 	    frags = atoi(myargv[p+1]);
-	    con_printf("Levels will end after %d frag",frags);
+	    printf("Levels will end after %d frag",frags);
 	    if (frags > 1)
            {
-	        con_printf("s");
+	        printf("s");
            }
-	    con_printf(".\n");
+	    printf(".\n");
        }
 
     p = M_CheckParm ("-timer");
@@ -1518,18 +1588,18 @@ void D_DoomMain (void)
        {
 	    int     time;
 	    time = atoi(myargv[p+1]);
-	    con_printf("Levels will end after %d minute",time);
+	    printf("Levels will end after %d minute",time);
 	    if (time>1)
            {
-	        con_printf("s");
+	        printf("s");
            }
-	    con_printf(".\n");
+	    printf(".\n");
        }
 
     p = M_CheckParm("-nosound");
     if (p != 0)
        {
-	    con_printf("Sound disabled.\n");
+	    printf("Sound disabled.\n");
         nosound = true;
         nosound_t = true;
        }
@@ -1594,27 +1664,28 @@ void D_DoomMain (void)
            }
         if (autostart != true)
            {
-            con_printf("Invalid start map requested...\n");
+            printf("Invalid start map requested...\n");
            }
        }
 
     
     // init subsystems
     //printf ("V_Init: allocate screens.\n");
-    con_printf("V_Init: allocate screens.\n");
+    printf("V_Init: allocate screens.\n");
     V_Init ();
+    R_InitMeltRes();
 
     //printf ("Z_Init: Init zone memory allocation daemon. \n");
-    con_printf("Z_init: Init zone memory allocation daemon. \n");
+    printf("Z_init: Init zone memory allocation daemon. \n");
     Z_Init ();
 
     //printf ("W_Init: Init WADfiles.\n");
-    con_printf("W_Init: Init WADfiles.\n");
+    printf("W_Init: Init WADfiles.\n");
     W_InitMultipleFiles(wadfiles);
     
     if (CheckGameMode() == false)
        {
-        con_printf("Unable to determine game mode - aborting...\n");
+        printf("Unable to determine game mode - aborting...\n");
         return;
        }
 
@@ -1624,21 +1695,21 @@ void D_DoomMain (void)
         demover = (byte *)W_CacheLumpName("DEMO1", PU_CACHE);
         if (*demover != 109)
            {
-            con_printf("+---------------------------------------------------------------+\n");
-            con_printf("|      B A D   D E M O   V E R S I O N   D E T E C T E D !      |\n");
-            con_printf("+---------------------------------------------------------------+\n");
+            printf("+---------------------------------------------------------------+\n");
+            printf("|      B A D   D E M O   V E R S I O N   D E T E C T E D !      |\n");
+            printf("+---------------------------------------------------------------+\n");
             if (modifiedgame)
                {
-                con_printf("|       This wad contains demos from a version %d.%d WAD.         |\n", *demover/100,*demover%100);
+                printf("|       This wad contains demos from a version %d.%d WAD.         |\n", *demover/100,*demover%100);
                }
             else
                {
-                con_printf("|       This wad appears to be from a version %d.%d WAD.          |\n", *demover/100,*demover%100);
+                printf("|       This wad appears to be from a version %d.%d WAD.          |\n", *demover/100,*demover%100);
                }
-            con_printf("|     You are advised that this may not run and the demos       |\n");
-            con_printf("|     may not play even if it does run.  glDoom will NOT        |\n");
-            con_printf("|     work properly on WAD versions earlier than 1.9            |\n");
-            con_printf("+---------------------------------------------------------------+\n");
+            printf("|     You are advised that this may not run and the demos       |\n");
+            printf("|     may not play even if it does run. glDoom Re will NOT      |\n");
+            printf("|     work properly on WAD versions earlier than 1.9            |\n");
+            printf("+---------------------------------------------------------------+\n");
            }
        }
 
@@ -1667,7 +1738,7 @@ void D_DoomMain (void)
            break;
        }
     
-    con_printf("%s\n",title);
+    printf("%s\n",title);
 
     // Check for -file in shareware
     if (modifiedgame)
@@ -1695,12 +1766,12 @@ void D_DoomMain (void)
     // If additonal PWAD files are used, print modified banner
     if (modifiedgame)
        {
-       con_printf("===========================================================================\n");
-       con_printf("ATTENTION:  This version of DOOM has been modified.  If you would like to\n");
-       con_printf("get a copy of the original game, call 1-800-IDGAMES or see the readme file.\n");
-       con_printf("        You will not receive technical support for modified games.\n");
-       //con_printf("                      press enter to continue\n");
-       con_printf("===========================================================================\n");
+       printf("===========================================================================\n");
+       printf("ATTENTION:  This version of DOOM has been modified.  If you would like to\n");
+       printf("get a copy of the original game, call 1-800-IDGAMES or see the readme file.\n");
+       printf("        You will not receive technical support for modified games.\n");
+       //printf("                      press enter to continue\n");
+       printf("===========================================================================\n");
        //    );
        //getchar ();
        }
@@ -1708,9 +1779,9 @@ void D_DoomMain (void)
     
     if ((conversion == true) && (gamemode != undetermined))
        {
-       con_printf("===========================================================================\n");
-       con_printf("                              Full Conversion!\n");
-       con_printf("===========================================================================\n");
+       printf("===========================================================================\n");
+       printf("                              Full Conversion!\n");
+       printf("===========================================================================\n");
        }
     else
        {
@@ -1720,25 +1791,25 @@ void D_DoomMain (void)
           case shareware:
              //case undetermined:
              //printf (
-             con_printf("===========================================================================\n");
-             con_printf("                                Shareware!\n");
-             con_printf("===========================================================================\n");
+             printf("===========================================================================\n");
+             printf("                                Shareware!\n");
+             printf("===========================================================================\n");
              //);
              break;
           case registered:
           case retail:
           case commercial:
              //printf (
-             con_printf("===========================================================================\n");
-             con_printf("                 Commercial product - do not distribute!\n");
-             con_printf("         Please report software piracy to the SPA: 1-800-388-PIR8\n");
-             con_printf("===========================================================================\n");
+             printf("===========================================================================\n");
+             printf("                 Commercial product - do not distribute!\n");
+             printf("         Please report software piracy to the SPA: 1-800-388-PIR8\n");
+             printf("===========================================================================\n");
              //);
              break;
           case undetermined:
-             con_printf("===========================================================================\n");
-             con_printf("                  Unable to determine game mode - aborting\n");
-             con_printf("===========================================================================\n");
+             printf("===========================================================================\n");
+             printf("                  Unable to determine game mode - aborting\n");
+             printf("===========================================================================\n");
              break;
           default:
              // Ouch.
@@ -1749,30 +1820,36 @@ void D_DoomMain (void)
 
     CreateGLPalette();
 
+    // [crispy] check for presence of a 5th episode
+    haved1e5 = (gamemode != commercial) &&
+                       (W_CheckNumForName("m_epi5") != -1) &&
+                       (W_CheckNumForName("e5m1") != -1) &&
+                       (W_CheckNumForName("wilv40") != -1);
+
     //printf ("M_Init: Init miscellaneous info.\n");
-    con_printf("M_Init: Init miscellaneous info.\n");
+    printf("M_Init: Init miscellaneous info.\n");
     M_Init();
 
     //printf ("R_Init: Init DOOM refresh daemon - ");
-    con_printf("R_Init: Init DOOM refresh daemon - ");
+    printf("R_Init: Init DOOM refresh daemon - ");
     R_Init();
 
     //printf ("\nP_Init: Init Playloop state.\n");
-    con_printf("\nP_Init: Init Playloop state.\n");
+    printf("\nP_Init: Init Playloop state.\n");
     P_Init();
 
     //con_printf("WS_Init: Init weapon sprites.\n");
     //WS_Init();
 
-    con_printf("WS_Init: Init sprites - ");
+    printf("WS_Init: Init sprites - ");
     LoadAllSprites();
 
     //printf ("I_Init: Setting up machine state.\n");
-    con_printf("I_Init: Setting up machine state.\n");
+    printf("I_Init: Setting up machine state.\n");
     I_Init();
 
     //printf ("D_CheckNetGame: Checking network game status.\n");
-    con_printf("D_CheckNetGame: Checking network game status.\n");
+    printf("D_CheckNetGame: Checking network game status.\n");
     D_CheckNetGame();
     if (gamemode == netabort)
        {
@@ -1780,23 +1857,23 @@ void D_DoomMain (void)
        }
 
     //printf ("S_Init: Setting up sound.\n");
-    con_printf("S_Init: Setting up sound.\n");
+    printf("S_Init: Setting up sound.\n");
     //S_Init (snd_SfxVolume*8, snd_MusicVolume*8 );
-    S_Init(snd_SfxVolume, snd_MusicVolume );
+    S_Init(snd_SfxVolume, snd_MusicVolume);
 
-    con_printf("HU_Init: Setting up heads up display.\n");
+    printf("HU_Init: Setting up heads up display.\n");
     HU_Init();
 
-    con_printf("ST_Init: Init status bar.\n");
+    printf("ST_Init: Init status bar.\n");
     ST_Init();
 
-    con_printf("CO_Init: Init console.\n");
+    printf("CO_Init: Init console.\n");
     CO_Init();
 
-    con_printf("WI_Init: Init game widgets.\n");
+    printf("WI_Init: Init game widgets.\n");
     WI_Init();
 
-    con_printf("F_Init: Init game finale.\n");
+    printf("F_Init: Init game finale.\n");
     F_Init();
 
     // check for a driver that wants intermission stats
@@ -1808,7 +1885,7 @@ void D_DoomMain (void)
        
        statcopy = (void*)atoi(myargv[p+1]);
        //printf ("External statistics registered.\n");
-       con_printf("External statistics registered.\n");
+       printf("External statistics registered.\n");
        }
     
     // start the apropriate game based on parms
@@ -1836,7 +1913,7 @@ void D_DoomMain (void)
           return;
        else
           {
-          con_printf("DEMO II [%s.dem] - BAD FILE.\n", myargv[p+1]);
+          printf("DEMO II [%s.dem] - BAD FILE.\n", myargv[p+1]);
           }
        //    D_DoomLoop ();  // never returns
        }
@@ -1844,7 +1921,7 @@ void D_DoomMain (void)
     p = M_CheckParm ("-timedemo");
     if (p && p < myargc-1)
        {
-       con_printf("-timedemo\n");
+       printf("-timedemo\n");
        G_TimeDemo (myargv[p+1]);
        return;
        //    D_DoomLoop ();  // never returns
@@ -1853,12 +1930,12 @@ void D_DoomMain (void)
     p = M_CheckParm ("-timedemo2");
     if (p && p < myargc-1)
        {
-       con_printf("-timedemo2\n");
+       printf("-timedemo2\n");
        if (G_TimeDemo_II(myargv[p+1]) == true)
           return;
        else
           {
-          con_printf("DEMO II [%s.dem] - BAD FILE.\n", myargv[p+1]);
+          printf("DEMO II [%s.dem] - BAD FILE.\n", myargv[p+1]);
           }
        //    D_DoomLoop ();  // never returns
        }

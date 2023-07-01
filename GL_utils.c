@@ -1,9 +1,12 @@
-#ifdef _WINDOWS
-   #include <windows.h>
-   #include <io.h>
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <inttypes.h>
+#include <unistd.h>
 #endif
+//#endif
 #include <fcntl.h>
-#include <GL/gl.h>
+#include "thirdparty/glad/include/glad/glad.h"
 #include "doomdata.h"
 #include "r_defs.h"
 #include "gldefs.h"
@@ -111,7 +114,7 @@ void InitGLPalette(int red, int green, int blue)
 
 int CreateColorMap(int red, int green, int blue)
    {
-    int             r, c, d, h, t, m, n, TempTexName;
+    int             TempTexName;
     unsigned char   TexData[4];
 
     TexWide = 1;
@@ -143,7 +146,7 @@ int CreateColorMap(int red, int green, int blue)
 
 int CreatePointLightMap(int red, int green, int blue, dboolean alphaonly)
    {
-    int             r, c, d, h, t, m, n, TempTexName;
+    int             r, d, t, TempTexName;
 
     TexWide = 16;
     TexHigh = 16;
@@ -233,21 +236,21 @@ int GL_LoadSkyTop( char *filename )
     BITMAPINFOHEADER bmi;
     RGBQUAD         *bmpPalette;
 
-    fn = open(filename, O_RDONLY | O_BINARY );
+    fn = Open(filename, O_RDONLY | O_BINARY );
 
-    read(fn, &bmfh, sizeof(BITMAPFILEHEADER));
-    read(fn, &bmi, sizeof(BITMAPINFOHEADER));
+    Read(fn, &bmfh, sizeof(BITMAPFILEHEADER));
+    Read(fn, &bmi, sizeof(BITMAPINFOHEADER));
 
     TexWide = bmi.biWidth;
     TexHigh = bmi.biHeight;
 
     bmpPalette = (RGBQUAD *)malloc(sizeof(RGBQUAD)*256);
-    read(fn, bmpPalette, (sizeof(RGBQUAD)*256));
+    Read(fn, bmpPalette, (sizeof(RGBQUAD)*256));
 
     texels = (unsigned char *)malloc(TexWide*TexHigh);
-    lseek(fn, bmfh.bfOffBits, SEEK_SET);
-    read(fn, texels, (TexWide*TexHigh));
-    close(fn);
+    LSeek(fn, bmfh.bfOffBits, SEEK_SET);
+    Read(fn, texels, (TexWide*TexHigh));
+    Close(fn);
 
     TexRGB =  (GLubyte *)malloc(TexWide*(TexHigh*3));
     for (s = 0, d = 0; s < (TexWide*TexHigh); s++)
@@ -359,7 +362,7 @@ int GL_LoadTexture(int TexNumb)
 
 int GL_LoadSkyTexture(int TexNumb, int *SkyTex)
    {
-    int            x, n, r, wide, s, d, glw,w;
+    int            x, n, r, s, d, glw,w;
     int            TempTexNumb = 0, iPower;
     short          sx, sy, fields;
     int            px, py, part, parts;
@@ -547,7 +550,7 @@ int GL_MakeSpriteTexture(patch_t *Sprite, GLTexData *Tex, dboolean smooth)
     static int      x, ixsize, iysize, cwidth;
     unsigned short *tshort;
 
-    int		       i, j, n;
+    int		       i, n;
     int            iOffSet, iPower;
 
     int            TempTexNumb;
@@ -656,7 +659,7 @@ int GL_MakeWideSpriteTexture(patch_t *Screen, GLTexData *Tex)
    {
     static int      x, ixsize, iysize;
     unsigned short *tshort;
-    int		       i, j, n, d, s;
+    int		       i, d, s;
     int            TempTexNumb;
     int            iGLWide, iGLHigh, iPower;
 
@@ -884,7 +887,7 @@ int GL_MakeScreenTexture(patch_t *Screen, GLTexData *Tex)
    {
     static int     x, ixsize, iysize;
     unsigned short *tshort;
-    int		       i, j, n, d, s;
+    int		       i, d, s;
     int            TempTexNumb;
 
     tshort = (unsigned short *)Screen;

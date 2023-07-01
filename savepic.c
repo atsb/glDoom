@@ -2,15 +2,22 @@
 //
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
 #include <io.h>
+#else
+#include <inttypes.h>
+#include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <malloc.h>
+
+#include "doomtype.h"
 
 int           columns;
 unsigned char *image;
 
 void SavePic(int x, int y, unsigned char *texels, char *filename)
-   {
+{
     unsigned short w, h, vo, ho, run;
     int            wide, high, fn, col = 0, row = 0, start = 0;
     int          *columns, isize = 0;
@@ -82,18 +89,18 @@ void SavePic(int x, int y, unsigned char *texels, char *filename)
     vo = ho = 0;
 
     // open the file to save the "lump" in
-    fn = _open(filename, O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0666);
-    _write(fn, &w, sizeof(short));
-    _write(fn, &h, sizeof(short));
-    _write(fn, &vo, sizeof(short));
-    _write(fn, &ho, sizeof(short));
-    _write(fn, columns, sizeof(int)*x);
-    _write(fn, image, ((p-image)+1));
+    fn = Open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
+    Write(fn, &w, sizeof(short));
+    Write(fn, &h, sizeof(short));
+    Write(fn, &vo, sizeof(short));
+    Write(fn, &ho, sizeof(short));
+    Write(fn, columns, sizeof(int)*x);
+    Write(fn, image, ((p-image)+1));
     // close the output file
-    _close(fn);
+    Close(fn);
 
     // free the output image
     free(image);
     // free the memory used to hold the column offsets
     free(columns);
-   }
+}

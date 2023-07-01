@@ -64,6 +64,8 @@ extern GameMission_t	gamemission;
 // Set if homebrew PWAD stuff has been added.
 extern  dboolean	modifiedgame;
 
+// [crispy] Sigil
+extern boolean haved1e5;
 
 // -------------------------------------------
 // Language.
@@ -245,7 +247,7 @@ extern  int		maxammo[NUMAMMO];
 //
 
 // File handling stuff.
-extern	char		basedefault[1024];
+extern	char		*basedefault;
 extern  FILE*		debugfile;
 
 // if true, load all graphics at level load

@@ -68,9 +68,9 @@ rcsid[] = "$Id: g_game.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
 #include "g_game.h"
 
-#include "gconsole.h"
-
 #include "doomcmd.h"
+
+#include "thirdparty/SDL2/include/SDL.h"
 
 
 #define SAVEGAMESIZE	0x2c0000
@@ -174,8 +174,8 @@ int		key_backward;
 int     key_right;
 int		key_left;
 
-int     key_hudup = KEY_EQUALS;
-int     key_huddn = KEY_MINUS;
+int     key_hudup = SDL_SCANCODE_EQUALS;
+int     key_huddn = SDL_SCANCODE_MINUS;
 
 int		key_up;
 int		key_down; 
@@ -207,48 +207,6 @@ int     gl_widetex;
 
 int     music;
 
-int     joybfire; 
-int     joybstrafe; 
-int     joybuse; 
-int     joybspeed; 
-
-int     joydead = 5000;
-
-int     joyb[32];
- 
-int     joyb1;
-int     joyb2;
-int     joyb3;
-int     joyb4;
-int     joyb5;
-int     joyb6;
-int     joyb7;
-int     joyb8;
-int     joyb9;
-int     joyb10;
-int     joyb11;
-int     joyb12;
-int     joyb13;
-int     joyb14;
-int     joyb15;
-int     joyb16;
-int     joyb17;
-int     joyb18;
-int     joyb19;
-int     joyb20;
-int     joyb21;
-int     joyb22;
-int     joyb23;
-int     joyb24;
-int     joyb25;
-int     joyb26;
-int     joyb27;
-int     joyb28;
-int     joyb29;
-int     joyb30;
-int     joyb31;
-int     joyb32;
-
 int     autorun;
 int     swap_stereo;
 int     mouse_factor;
@@ -258,71 +216,71 @@ int     nosound;
 int     keylink;
 int     link_alt;
 
-int     key_f1  = KEY_F1;
-int     key_f2  = KEY_F2;
-int     key_f3  = KEY_F3; 
-int     key_f4  = KEY_F4;
-int     key_f5  = KEY_F5;
-int     key_f6  = KEY_F6;
-int     key_f7  = KEY_F7;
-int     key_f8  = KEY_F8;
-int     key_f9  = KEY_F9;
-int     key_f10 = KEY_F10;
-int     key_f11 = KEY_F11;
-int     key_f12 = KEY_F12;
+int     key_f1  = SDL_SCANCODE_F1;
+int     key_f2  = SDL_SCANCODE_F2;
+int     key_f3  = SDL_SCANCODE_F3; 
+int     key_f4  = SDL_SCANCODE_F4;
+int     key_f5  = SDL_SCANCODE_F5;
+int     key_f6  = SDL_SCANCODE_F6;
+int     key_f7  = SDL_SCANCODE_F7;
+int     key_f8  = SDL_SCANCODE_F8;
+int     key_f9  = SDL_SCANCODE_F9;
+int     key_f10 = SDL_SCANCODE_F10;
+int     key_f11 = SDL_SCANCODE_F11;
+int     key_f12 = SDL_SCANCODE_F12;
 
-int     key_enter = KEY_ENTER;
-int     key_backspace = KEY_BACKSPACE;
+int     key_enter = SDL_SCANCODE_RETURN;
+int     key_backspace = SDL_SCANCODE_BACKSPACE;
 int     destination_keys;
-int     key_chat = KEY_T;
-int     key_map_grid = KEY_G;
-int     key_map_gobig = KEY_0;
-int     key_map_clear = KEY_C;
-int     key_map_mark = KEY_M;
-int     key_map_right = KEY_RIGHTARROW;
-int     key_map_left = KEY_LEFTARROW;
-int     key_map_down = KEY_DOWNARROW;
-int     key_map_up = KEY_UPARROW;
-int     key_map_zoomout = KEY_MINUS;
-int     key_map_zoomin = KEY_EQUALS;
-int     key_map_follow = KEY_F;
+int     key_chat = SDL_SCANCODE_T;
+int     key_map_grid = SDL_SCANCODE_G;
+int     key_map_gobig = SDL_SCANCODE_0;
+int     key_map_clear = SDL_SCANCODE_C;
+int     key_map_mark = SDL_SCANCODE_M;
+int     key_map_right = SDL_SCANCODE_RIGHT;
+int     key_map_left = SDL_SCANCODE_LEFT;
+int     key_map_down = SDL_SCANCODE_DOWN;
+int     key_map_up = SDL_SCANCODE_UP;
+int     key_map_zoomout = SDL_SCANCODE_MINUS;
+int     key_map_zoomin = SDL_SCANCODE_EQUALS;
+int     key_map_follow = SDL_SCANCODE_F;
 int     key_weapontoggle;
-int     key_weapon9 = KEY_9;
-int     key_weapon8 = KEY_8;
-int     key_weapon7 = KEY_7;
-int     key_weapon6 = KEY_6;
-int     key_weapon5 = KEY_5;
-int     key_weapon4 = KEY_4;
-int     key_weapon3 = KEY_3;
-int     key_weapon2 = KEY_2;
-int     key_weapon1 = KEY_1;
-int     key_help        = KEY_F1;
-int     key_savegame    = KEY_F2;
-int     key_loadgame    = KEY_F3;
-int     key_soundvolume = KEY_F4;
-int     key_quicksave   = KEY_F6;
-int     key_endgame     = KEY_F7;
-int     key_messages    = KEY_F8;
-int     key_quickload   = KEY_F9;
-int     key_quit        = KEY_F10;
-int     key_gamma       = KEY_F11;
-int     key_screenshot  = KEY_F12;
-int     key_zoomout = KEY_MINUS;
-int     key_zoomin  = KEY_EQUALS;
+int     key_weapon9 = SDL_SCANCODE_9;
+int     key_weapon8 = SDL_SCANCODE_8;
+int     key_weapon7 = SDL_SCANCODE_7;
+int     key_weapon6 = SDL_SCANCODE_6;
+int     key_weapon5 = SDL_SCANCODE_5;
+int     key_weapon4 = SDL_SCANCODE_4;
+int     key_weapon3 = SDL_SCANCODE_3;
+int     key_weapon2 = SDL_SCANCODE_2;
+int     key_weapon1 = SDL_SCANCODE_1;
+int     key_help        = SDL_SCANCODE_F1;
+int     key_savegame    = SDL_SCANCODE_F2;
+int     key_loadgame    = SDL_SCANCODE_F3;
+int     key_soundvolume = SDL_SCANCODE_F4;
+int     key_quicksave   = SDL_SCANCODE_F6;
+int     key_endgame     = SDL_SCANCODE_F7;
+int     key_messages    = SDL_SCANCODE_F8;
+int     key_quickload   = SDL_SCANCODE_F9;
+int     key_quit        = SDL_SCANCODE_F10;
+int     key_gamma       = SDL_SCANCODE_F11;
+int     key_screenshot  = SDL_SCANCODE_F12;
+int     key_zoomout = SDL_SCANCODE_MINUS;
+int     key_zoomin  = SDL_SCANCODE_EQUALS;
 int     key_spy;
 int     key_hud;
-int     key_map = KEY_TAB;
-int     key_pause = KEY_PAUSE;
-int     key_escape = KEY_ESCAPE;
-int     key_menu_escape = KEY_ESCAPE;
-int     key_menu_enter = KEY_ENTER;
-int     key_menu_backspace = KEY_BACKSPACE;
-int     key_menu_right = KEY_RIGHTARROW;
-int     key_menu_left = KEY_LEFTARROW;
-int     key_menu_up = KEY_UPARROW;
-int     key_menu_down = KEY_DOWNARROW;
+int     key_map = SDL_SCANCODE_TAB;
+int     key_pause = SDL_SCANCODE_PAUSE;
+int     key_escape = SDL_SCANCODE_ESCAPE;
+int     key_menu_escape = SDL_SCANCODE_ESCAPE;
+int     key_menu_enter = SDL_SCANCODE_RETURN;
+int     key_menu_backspace = SDL_SCANCODE_BACKSPACE;
+int     key_menu_right = SDL_SCANCODE_RIGHT;
+int     key_menu_left = SDL_SCANCODE_LEFT;
+int     key_menu_up = SDL_SCANCODE_UP;
+int     key_menu_down = SDL_SCANCODE_DOWN;
 int     key_reverse;
-int     key_autorun = KEY_CAPITAL;
+int     key_autorun;
 
 int     defaultskill = 2;
 
@@ -331,6 +289,7 @@ int weapon_recoil;           // weapon recoil
 int default_player_bobbing;  // whether player bobs or not         
 int player_bobbing;          // whether player bobs or not       
 int weapon_preferences[2][NUMWEAPONS+1];                   
+int curweapon = 2;
 int health_red;    // health amount less than which status is red
 int health_yellow; // health amount less than which status is yellow
 int health_green;  // health amount above is blue, below is green
@@ -365,7 +324,7 @@ dboolean		mousearray[4];
 dboolean*	mousebuttons = &mousearray[1];		// allow [-1]
 
 // mouse values are used once 
-int             mousex;
+int     mousex;
 int		mousey;         
 
 int             dclicktime;
@@ -386,6 +345,7 @@ char		savedescription[32];
  
  
 #define	BODYQUESIZE	32
+#define MAX_MOUSEB 8
 
 mobj_t*		bodyque[BODYQUESIZE]; 
 int		bodyqueslot; 
@@ -404,6 +364,17 @@ int G_CmdChecksum (ticcmd_t* cmd)
 		 
     return sum; 
 } 
+
+static void SetMouseButtons(unsigned int buttons_mask)
+{
+    int i;
+
+    for (i = 0; i < MAX_MOUSEB; ++i)
+    {
+        unsigned int button_on = (buttons_mask & (1 << i)) != 0;
+        mousebuttons[i] = button_on;
+    }
+}
  
 
 extern float fXAngle;
@@ -416,7 +387,6 @@ extern float fXAngle;
 void G_BuildTiccmd (ticcmd_t* cmd) 
    { 
     dboolean   strafe;
-    dboolean   bstrafe; 
     int       speed;
     int       tspeed; 
     int       forward;
@@ -429,11 +399,11 @@ void G_BuildTiccmd (ticcmd_t* cmd)
 	
     cmd->consistancy = consistancy[consoleplayer][maketic%BACKUPTICS]; 
  
-    strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe] || joybuttons[joybstrafe]; 
-    if ((joybspeed == 31) || (autorun == true))
+    strafe = gamekeydown[key_strafe]; //|| mousebuttons[mousebstrafe] || joybuttons[joybstrafe]; 
+    if (autorun == true)
        speed = 1;
     else
-       speed = gamekeydown[key_speed] || joybuttons[joybspeed];
+       speed = gamekeydown[key_speed];
     
  
     forward = side = 0;
@@ -520,65 +490,99 @@ void G_BuildTiccmd (ticcmd_t* cmd)
     // buttons
     cmd->chatchar = HU_dequeueChatChar(); 
  
-    if (gamekeydown[key_fire] || mousebuttons[mousebfire] || joybuttons[joybfire]) 
+    if (gamekeydown[key_fire] || mousebuttons[mousebfire])
        {
         cmd->buttons |= BT_ATTACK;
        }
  
-    if (gamekeydown[key_use] || joybuttons[joybuse] ) 
+    if (gamekeydown[key_use]) 
        { 
         cmd->buttons |= BT_USE;
         // clear double clicks if hit use button 
         dclicks = 0;                   
        } 
 
+    // mouse scrolling doesnt work yet..
+#if 0
+    if (gamekeydown[KEYD_MWHEELDOWN])
+    {
+        curweapon++;
+
+        if (curweapon > 8)
+            curweapon = 0;
+
+        cmd->buttons |= BT_CHANGE;
+        cmd->buttons |= curweapon << BT_WEAPONSHIFT;
+    }
+
+    if (gamekeydown[KEYD_MWHEELUP])
+    {
+        curweapon--;
+
+        if (curweapon < 0)
+            curweapon = 8;
+
+        cmd->buttons |= BT_CHANGE;
+        cmd->buttons |= curweapon << BT_WEAPONSHIFT;
+    }
+#endif
+
     if (gamekeydown[key_weapon1])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 0<<BT_WEAPONSHIFT;
+        curweapon = 0;
        }
     else
     if (gamekeydown[key_weapon2])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 1<<BT_WEAPONSHIFT;
+        curweapon = 1;
        }
     else
     if (gamekeydown[key_weapon3])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 2<<BT_WEAPONSHIFT;
+        curweapon = 2;
        }
     else
     if (gamekeydown[key_weapon4])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 3<<BT_WEAPONSHIFT;
+        curweapon = 3;
        }
     else
     if (gamekeydown[key_weapon5])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 4<<BT_WEAPONSHIFT;
+        curweapon = 4;
        }
     else
     if (gamekeydown[key_weapon6])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 5<<BT_WEAPONSHIFT;
+        curweapon = 5;
        }
     else
     if (gamekeydown[key_weapon7])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 6<<BT_WEAPONSHIFT;
+        curweapon = 6;
        }
     else
     if (gamekeydown[key_weapon8])
        {
         cmd->buttons |= BT_CHANGE; 
         cmd->buttons |= 7<<BT_WEAPONSHIFT;
+        curweapon = 7;
        }
+
 /*
     else
     if (gamekeydown[key_weapon9])
@@ -602,11 +606,11 @@ void G_BuildTiccmd (ticcmd_t* cmd)
     */
 
     // mouse
-    if (mousebuttons[mousebforward]) 
-        forward += forwardmove[speed];
+    /*if (mousebuttons[mousebforward]) 
+        forward += forwardmove[speed];*/
     
     // forward double click
-    if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 ) 
+    /*if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 ) 
        { 
         dclickstate = mousebuttons[mousebforward]; 
         if (dclickstate) 
@@ -627,10 +631,10 @@ void G_BuildTiccmd (ticcmd_t* cmd)
             dclicks = 0; 
             dclickstate = 0; 
            } 
-       }
+       }*/
     
     // strafe double click
-    bstrafe = mousebuttons[mousebstrafe] || joybuttons[joybstrafe]; 
+    /*bstrafe = mousebuttons[mousebstrafe] || joybuttons[joybstrafe]; 
     if (bstrafe != dclickstate2 && dclicktime2 > 1 ) 
        { 
         dclickstate2 = bstrafe; 
@@ -652,13 +656,13 @@ void G_BuildTiccmd (ticcmd_t* cmd)
             dclicks2 = 0; 
             dclickstate2 = 0; 
            } 
-       } 
+       } */
  
-    forward += mousey; 
-    if (strafe) 
+    //forward += mousey; 
+    /*if (strafe) 
         side += mousex*2; 
-    else 
-        cmd->angleturn -= mousex*0x8; 
+    else */
+        cmd->angleturn -= mousex; 
 
     mousex = mousey = 0;
 	 
@@ -760,7 +764,7 @@ void G_DoLoadLevel (void)
 dboolean G_Responder(event_t* ev) 
    { 
     // allow spy mode changes even during the demo
-    if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == KEY_F12 && (singledemo || !deathmatch))
+    if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == SDL_SCANCODE_F12 && (singledemo || !deathmatch))
        {
         // spy mode 
         do 
@@ -789,7 +793,7 @@ dboolean G_Responder(event_t* ev)
         if (ev->type == ev_keydown || (ev->type == ev_mouse && ev->data1) || (ev->type == ev_joystick && ev->data1))
            {
             // except the console key...
-            if ((ev->type != ev_keydown) || (ev->data1 != KEY_CONSOLE))
+            if ((ev->type != ev_keyup))// || (ev->data1 != KEY_CONSOLE))
                {
                 M_StartControlPanel (); 
                 return true; 
@@ -828,7 +832,7 @@ dboolean G_Responder(event_t* ev)
     switch (ev->type) 
        { 
         case ev_keydown: 
-             if (ev->data1 == KEY_PAUSE) 
+             if (ev->data1 == SDL_SCANCODE_PAUSE)   
                 { 
                  sendpause = true; 
                  return true; 
@@ -842,24 +846,23 @@ dboolean G_Responder(event_t* ev)
                  gamekeydown[ev->data1] = false; 
              return false;   // always let key up events filter down 
 		 
-        case ev_mouse: 
-             mousebuttons[0] = ev->data1 & 1; 
-             mousebuttons[1] = ev->data1 & 2; 
-             mousebuttons[2] = ev->data1 & 4; 
-             //mousex = ev->data2*(mouseSensitivity+5)/10; 
-             //mousey = ev->data3*(mouseSensitivity+5)/10; 
-             mousex = ev->data2*(mouseHorizontal*0.1*mouse_factor);
-             mousey = ev->data3*(mouseVertical*0.1*mouse_factor);
+        case ev_mouse:
+            SetMouseButtons(ev->data1);
+            return true;
+
+        case ev_mousemotion: 
+             mousex = ev->data2*(mouseHorizontal) / 10;
+             mousey = ev->data3*(mouseVertical) / 10;
              return true;    // eat events 
  
-        case ev_joystick: 
-             joybuttons[0] = ev->data1 & 1; 
-             joybuttons[1] = ev->data1 & 2; 
-             joybuttons[2] = ev->data1 & 4; 
-             joybuttons[3] = ev->data1 & 8; 
-             joyxmove = ev->data2; 
-             joyymove = ev->data3; 
-             return true;    // eat events 
+        //case ev_joystick: 
+        //     joybuttons[0] = ev->data1 & 1; 
+        //     joybuttons[1] = ev->data1 & 2; 
+        //     joybuttons[2] = ev->data1 & 4; 
+        //     joybuttons[3] = ev->data1 & 8; 
+        //     joyxmove = ev->data2; 
+        //     joyymove = ev->data3; 
+        //     return true;    // eat events 
  
         default: 
              break; 
@@ -1119,7 +1122,7 @@ void G_PlayerReborn (int player)
 //
 void P_SpawnPlayer (mapthing_t* mthing); 
  
-char MsgText[2048];
+static char MsgText[2048];
 
 dboolean
 G_CheckSpot
@@ -1281,6 +1284,11 @@ int cpars[32] =
     120,30					// 31-32
 };
  
+// [crispy] Episode 5 par times from Sigil v1.21
+static int e5pars[10] =
+{
+    0,90,150,360,420,780,420,780,300,660
+};
 
 //
 // G_DoCompleted 
@@ -1387,6 +1395,7 @@ void G_DoCompleted (void)
 		wminfo.next = 5; 
 		break; 
 	      case 3: 
+          case 5: // [crispy] Sigil
 		wminfo.next = 6; 
 		break; 
 	      case 4:
@@ -1403,9 +1412,19 @@ void G_DoCompleted (void)
     wminfo.maxsecret = totalsecret; 
     wminfo.maxfrags = 0; 
     if ( gamemode == commercial )
-	wminfo.partime = 35*cpars[gamemap-1]; 
+	wminfo.partime = TICRATE * cpars[gamemap-1];
     else
-	wminfo.partime = 35*pars[gameepisode][gamemap]; 
+	wminfo.partime = TICRATE * pars[gameepisode][gamemap];
+
+    // [crispy] use episode 3 par times for Sigil's episode 5
+    if (gameepisode == 5)
+    {
+        wminfo.partime = TICRATE * e5pars[gamemap];
+    }
+    else
+    {
+        wminfo.partime = TICRATE * cpars[gamemap];
+    }
     wminfo.pnum = consoleplayer; 
  
     for (i=0 ; i<MAXPLAYERS ; i++) 
@@ -1549,7 +1568,7 @@ void G_DoLoadGame (void)
         for (i = 0; i < VERSIONSIZE; i++) vcheck[i] = 0; //no garbage
         sprintf(vcheck, "Slot%d", 0); // pad the string
         vcheck[4] = savename[7];		// slot number
-        totalscore = GetPrivateProfileInt("SCORES", vcheck, 0, ".");
+        //totalscore = GetPrivateProfileInt("SCORES", vcheck, 0, ".");
     }
 } 
  
@@ -1629,12 +1648,12 @@ void G_DoSaveGame (void)
     if (keepscore)  //if keeping score write the score
     {
         sprintf(name, "%d", totalscore);
-        WritePrivateProfileString("SCORES", name2, name, ".");
+        //WritePrivateProfileString("SCORES", name2, name, ".");
     }
     else			//otherwise zero it out
     {
         sprintf(name, "%d", 0);
-        WritePrivateProfileString("SCORES", name2, name, ".");
+        //WritePrivateProfileString("SCORES", name2, name, ".");
     }
 } 
  
@@ -1795,7 +1814,11 @@ G_InitNew
 	  case 4:	// Special Edition sky
 	    skytexture = R_TextureNumForName ("SKY4");
 	    break;
+      case 5:        // [crispy] Sigil
+        skytexture = R_TextureNumForName ("SKY5_ZD");
+        break;
 	} 
+
  
     setsizeneeded = true;
     G_DoLoadLevel (); 
@@ -1825,7 +1848,7 @@ void G_ReadDemoTiccmd (ticcmd_t* cmd)
 
 void G_WriteDemoTiccmd (ticcmd_t* cmd) 
 { 
-    if (gamekeydown[KEY_Q])           // press q to end demo recording 
+    if (gamekeydown[SDL_SCANCODE_Q])           // press q to end demo recording 
 	G_CheckDemoStatus (); 
     *demo_p++ = cmd->forwardmove; 
     *demo_p++ = cmd->sidemove; 
@@ -1855,7 +1878,7 @@ void G_RecordDemo (char* name)
     usergame = false; 
     strcpy (demoname, name); 
     strcat (demoname, ".lmp"); 
-    con_printf("Record demo : %s\n", demoname);
+    printf("Record demo : %s\n", demoname);
     maxsize = 0x70000;
     i = M_CheckParm ("-maxdemo");
     if (i && i<myargc-1)
@@ -2007,7 +2030,7 @@ dboolean G_DeferedPlayDemo_II (char* name)
    { 
     static char demofilename[128];
     sprintf(demofilename, "%s.dem", name);
-    if (access(demofilename, 0) != 0)
+    if (Access(demofilename, 0) != 0)
         return false;
     lfprintf("-playdemo2: %s\n", demofilename);
     defdemoname = demofilename;
@@ -2031,7 +2054,6 @@ void G_DoPlayDemo_II(void)
     int		a,b,c; 
     char	vcheck[VERSIONSIZE]; 
     skill_t skill; 
-    int     episode, map, dversion, tversion;
 
     demotype = DEMO_II;
 
@@ -2205,7 +2227,7 @@ dboolean G_TimeDemo_II (char* name)
 { 	 
     static char demofilename[128];
     sprintf(demofilename, "%s.dem", name);
-    if (access(demofilename, 0) != 0)
+    if (Access(demofilename, 0) != 0)
         return false;
     nodrawers = M_CheckParm ("-nodraw"); 
     noblit = M_CheckParm ("-noblit"); 
@@ -2231,7 +2253,7 @@ void G_TimeDemo (char* name)
 
     defdemoname = name; 
     gameaction = ga_playdemo; 
-    con_printf("Playing timedemo %s -noblit %d -nodraw %d\n", name, noblit, nodrawers);
+    printf("Playing timedemo %s -noblit %d -nodraw %d\n", name, noblit, nodrawers);
 } 
  
  

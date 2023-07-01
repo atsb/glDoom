@@ -1,5 +1,8 @@
 [Dd]ebug/
 [Rr]elease/
+*.cfg
+*.sf2
+*.MID
 *.user
 *.ncb
 *.wad
@@ -7,3 +10,6 @@
 *.suo
 *.dbg
 .vs/
+*.dll
+/DOOMSONG.MID
+/default.cfg

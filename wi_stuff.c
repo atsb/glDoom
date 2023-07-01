@@ -22,9 +22,10 @@
 //-----------------------------------------------------------------------------
 
 
-#include <windows.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
+//#include <windows.h>
+//#include <gl/gl.h>
+//#include <gl/glu.h>
+#include "thirdparty/glad/include/glad/glad.h"
 
 static const char
 rcsid[] = "$Id: wi_stuff.c,v 1.7 1997/02/03 22:45:13 b1 Exp $";
@@ -90,10 +91,10 @@ rcsid[] = "$Id: wi_stuff.c,v 1.7 1997/02/03 22:45:13 b1 Exp $";
 
 // SINGPLE-PLAYER STUFF
 #define SP_STATSX		50
-#define SP_STATSY		(((SCREENHEIGHT-200)/2)+50)
+#define SP_STATSY		50
 
 #define SP_TIMEX		16
-#define SP_TIMEY		(((SCREENHEIGHT-200)/2)+168)
+#define SP_TIMEY		168
 
 
 // NET GAME STUFF
@@ -1119,10 +1120,11 @@ void WI_drawTime( int x, int y, int t )
        }
    }
 
+extern void WI_unloadData(void);
 
 void WI_End(void)
 {
-    void WI_unloadData(void);
+    //--> ? void WI_unloadData(void);
     WI_unloadData();
 }
 
@@ -2365,6 +2367,10 @@ void WI_loadData(void)
 	strcpy(name, "INTERPIC");
         glBackGround = Interpic;
        }
+    else if (haved1e5 && wbs->epsd == 4 && W_CheckNumForName("SIGILINT") != -1) // [crispy] Sigil
+    {
+        glBackGround = Interpic;
+    }
     else 
        {
 	    sprintf(name, "WIMAP%d", wbs->epsd);

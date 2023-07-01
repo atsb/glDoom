@@ -26,9 +26,7 @@
 
 static const char rcsid[] = "$Id: r_main.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 
-#include <windows.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
+#include "thirdparty/glad/include/glad/glad.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -42,7 +40,7 @@ static const char rcsid[] = "$Id: r_main.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 #include "r_local.h"
 #include "r_sky.h"
 
-#include "sys_win.h"
+#include "sys_sdl.h"
 #include "gldefs.h"
 
 #include "v_video.h"
@@ -914,7 +912,7 @@ extern dboolean RedBias, GreenBias, WhiteBias;
 void GL_DrawSky(float compass)
 {
     int   bquad, equad, tcomp;
-    float lcomp, rcomp, remainder;
+    float lcomp, rcomp;
     float tseam, middle;
 
     float fSkyTop, fSkyBottom, fSkyMiddle, fSkyHalfHeight;
@@ -1148,7 +1146,7 @@ void DrawAmmoBox(void)
     glPushMatrix();
 
     glTranslatef( 1056.0f, -16.0f, 3232.0f );
-    now = (double)(timeGetTime() % 5000)*RFactor;
+    now = (double)(SDL_GetTicks64() % 5000)*RFactor;
     rotation = now;
     glRotatef(rotation, 0.0f, 1.0f, 0.0f );
 
@@ -1215,7 +1213,6 @@ void DrawAmmoBox(void)
     glPopMatrix();
    }
 
-extern windata_t WinData;
 extern int       gl_poffsetf, gl_poffsetu;
 
 void             GL_DrawPlayerSprites(void);
@@ -1270,7 +1267,7 @@ void MConcat(double in1[3][3], double in2[3][3], double out[3][3])
 /////////////////////////////////////////////////////////////////////
 void UpdateViewAngles(ml_vec3_t angles)
    {
-    ml_vec3_t mtemp1[3], mtemp2[3], mroll[3], mpitch[3], myaw[3];
+    ml_vec3_t mtemp[3], mroll[3], mpitch[3], myaw[3];
     double    s, c, roll, pitch, yaw;
    
     pitch = angles[0];
@@ -1305,12 +1302,12 @@ void UpdateViewAngles(ml_vec3_t angles)
     
 //  concat two rotations
 
-    mtemp1[0][0] = myaw[0][0];
-    mtemp1[0][2] = myaw[0][2];
+    mtemp[0][0] = myaw[0][0];
+    mtemp[0][2] = myaw[0][2];
 
-    mtemp1[1][0] = mpitch[1][2] * myaw[2][0];
-    mtemp1[1][1] = mpitch[1][1] * myaw[1][1];
-    mtemp1[1][2] = mpitch[1][2] * myaw[2][2];
+    mtemp[1][0] = mpitch[1][2] * myaw[2][0];
+    mtemp[1][1] = mpitch[1][1] * myaw[1][1];
+    mtemp[1][2] = mpitch[1][2] * myaw[2][2];
 
     // set the 'Z' axis here - we're done with it
     vpn[0] = mpitch[2][2] * myaw[2][0];
@@ -1319,13 +1316,13 @@ void UpdateViewAngles(ml_vec3_t angles)
 
 //  concat third rotation - roll doesn't affect the 'Z' axis
 
-    vright[0] = mroll[0][0] * mtemp1[0][0] + mroll[0][1] * mtemp1[1][0];
-    vright[1] = mroll[0][1] * mtemp1[1][1];
-    vright[2] = mroll[0][0] * mtemp1[0][2] + mroll[0][1] * mtemp1[1][2];
+    vright[0] = mroll[0][0] * mtemp[0][0] + mroll[0][1] * mtemp[1][0];
+    vright[1] = mroll[0][1] * mtemp[1][1];
+    vright[2] = mroll[0][0] * mtemp[0][2] + mroll[0][1] * mtemp[1][2];
 
-    vup[0] = mroll[1][0] * mtemp1[0][0] + mroll[1][1] * mtemp1[1][0];
-    vup[1] = mroll[1][1] * mtemp1[1][1];
-    vup[2] = mroll[1][0] * mtemp1[0][2] + mroll[1][1] * mtemp1[1][2];
+    vup[0] = mroll[1][0] * mtemp[0][0] + mroll[1][1] * mtemp[1][0];
+    vup[1] = mroll[1][1] * mtemp[1][1];
+    vup[2] = mroll[1][0] * mtemp[0][2] + mroll[1][1] * mtemp[1][2];
    }
 
 /////////////////////////////////////////////////////////////////////
@@ -1474,9 +1471,6 @@ void R_InitViewData()
 /////////////////////////////////////////////////////////////////////
 void R_AlignFrustum(ml_vert3_t position, ml_vec3_t orient)
    {
-    double    angle;
-    ml_vec3_t normal;
-
     UpdateViewAngles(orient);
 
     SetWorldspaceClipPlane(position, fixviewplanes[LCLIP].normal, &frustumplanes[LCLIP]);
@@ -1576,9 +1570,11 @@ dboolean R_ClipVertsToFrustum(DW_Polygon *TempPoly)
     return true;
    }
 
+// recalculates wall ceiling height, floor height
+// and UV coords for moving walls
 void R_BuildRenderQueue()
 {
-    int           i, texnumb, wall;
+    int           i, wall;
     dboolean       inside;
     DW_Polygon   *TempPoly;
     float         wallhigh, newhigh;
@@ -1598,6 +1594,9 @@ void R_BuildRenderQueue()
         {
             // Check left and right sides for inside the frustum
             //inside = (DrawSide[TempPoly->SideDef] == ds_draw);
+
+            // this functions will alaways return true.. 
+            //(this could be used to cull all non-visible walls) 
             inside = R_ClipVertsToFrustum(TempPoly);
 
             if (inside && DrawSide[TempPoly->SideDef] == ds_draw)
@@ -1688,7 +1687,6 @@ void R_BuildRenderQueue()
     }
  }
 
-
 void GL_RenderPlayerView(player_t* player)
    {
     int           i, texnumb, sector, subsector, wall, flat;
@@ -1702,7 +1700,6 @@ void GL_RenderPlayerView(player_t* player)
     static ml_vec3_t     ViewOrient;
     DW_Polygon   *TempPoly;
     static dboolean   FirstTime = true;
-    DW_Vertex3D   LightPos;
 
     DW_FloorCeil*   psubsector;
     sector_t*       psector;
@@ -1763,6 +1760,7 @@ void GL_RenderPlayerView(player_t* player)
         TempPoly = sorted_walls[wall];
         while (TempPoly != NULL)
         {
+            // test if wall is in visibility list
             if (DrawSide[TempPoly->SideDef] == ds_draw)
             {
                 if (TempPoly->Position)
@@ -2082,8 +2080,8 @@ void R_RenderPlayerView (player_t* player)
     // check for new console commands.
     NetUpdate ();
 
-    ZeroMemory(DrawFlat, sizeof(dboolean) * numsectors);
-    ZeroMemory(DrawSide, sizeof(drawside_t) * numsides);
+    memset(DrawFlat, 0, sizeof(dboolean) * numsectors);
+    memset(DrawSide, 0, sizeof(drawside_t) * numsides);
     sorted_flats_count = 0;
     sorted_walls_count = 0;
 

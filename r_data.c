@@ -49,7 +49,6 @@ rcsid[] = "$Id: r_data.c,v 1.4 1997/02/03 16:47:55 b1 Exp $";
 #define alloca malloc
 
 #include "r_data.h"
-#include "gconsole.h"
 #include "doomlib.h"
 
 //
@@ -494,18 +493,18 @@ void R_InitTextures (void)
     temp3 = ((temp2-temp1+63)/64) + ((numtextures+63)/64);
     // [AB] - this originally broke TNT and PLUTONIA wad loading, so I reverted it to vanilla
     // [AB] - no idea why it was changed..  seems pointless to me.
-    con_printf("[");
+    printf("[");
     for (i = 0; i < temp3; i++)
-        con_printf(" ");
-    con_printf("         ]");
+        printf(" ");
+    printf("         ]");
     for (i = 0; i < temp3; i++)
-        con_printf("\x8");
-    con_printf("\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8");
+        printf("\x8");
+    printf("\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8");
 	
     for (i=0; i<numtextures ; i++, directory++)
     {
         if (!(i&63))
-            con_printf(".");
+            printf(".");
 
         if (i == numtextures1)
         {
@@ -544,8 +543,10 @@ void R_InitTextures (void)
 
             if (patch->patch == -1)
             {
-                I_Error ("R_InitTextures: Missing patch in texture %s",
-                texture->name);
+                // [crispy] make non-fatal
+                fprintf(stderr, "R_InitTextures: Missing patch in texture %s\n",
+                    texture->name);
+                patch->patch = 0;
             }
         }		
         texturecolumnlump[i] = Z_Malloc (texture->width*2, PU_STATIC,0);
@@ -711,7 +712,7 @@ int	R_CheckTextureNumForName(char* name)
     D_strupper(tname);
 
     for (i = 0; i < numtextures; i++)
-        if (!D_strncasecmp(textures[i]->name, tname, 8))
+        if (!strncasecmp(textures[i]->name, tname, 8))
             return i;
 
     return -1;
@@ -732,8 +733,9 @@ int	R_TextureNumForName (char* name)
 
     if (i==-1)
     {
-	I_Error ("R_TextureNumForName: %s not found",
-		 name);
+        // [crispy] make non-fatal
+        fprintf(stderr, "R_TextureNumForName: %s not found\n",
+            name);
     }
     return i;
 }

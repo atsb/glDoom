@@ -25,7 +25,7 @@
 
 static const char rcsid[] = "$Id: d_net.c,v 1.3 1997/02/03 22:01:47 b1 Exp $";
 
-#include <windows.h>
+//#include <windows.h>
 
 #include "m_menu.h"
 #include "i_system.h"
@@ -34,9 +34,8 @@ static const char rcsid[] = "$Id: d_net.c,v 1.3 1997/02/03 22:01:47 b1 Exp $";
 #include "g_game.h"
 #include "doomdef.h"
 #include "doomstat.h"
-
+#include "d_main.h"
 #include "d_console.h"
-#include "gconsole.h"
 
 #define	NCMD_EXIT		0x80000000
 #define	NCMD_RETRANSMIT		0x40000000
@@ -80,14 +79,11 @@ int		ticdup;
 int		maxsend;	// BACKUPTICS/(2*ticdup)-1
 
 
-void D_ProcessEvents (void); 
 void G_BuildTiccmd (ticcmd_t *cmd); 
 void D_DoAdvanceDemo (void);
  
 dboolean		reboundpacket;
 doomdata_t	reboundstore;
-
-void  HandleKeyboard(void);
 
 //
 //
@@ -361,7 +357,7 @@ void GetPackets (void)
 // sends out a packet
 //
 int      gametime;
-
+extern 
 void NetUpdate (void)
    {
     int             nowtime;
@@ -446,7 +442,7 @@ void NetUpdate (void)
    }
 
 
-extern HACCEL ghAccel;
+//extern HACCEL ghAccel;
 extern dboolean bQuit;
 //
 // CheckAbort
@@ -466,7 +462,7 @@ dboolean CheckAbort (void)
     for ( ; eventtail != eventhead ; eventtail = (++eventtail)&(MAXEVENTS-1)) 
        { 
         ev = &events[eventtail]; 
-        if (ev->type == ev_keydown && ev->data1 == KEY_ESCAPE)
+        if (ev->type == ev_keydown && ev->data1 == SDL_SCANCODE_ESCAPE)
            {
             I_Error ("Network game synchronization aborted.");
             I_Quit();
@@ -492,7 +488,7 @@ void D_ArbitrateNetStart (void)
     if (doomcom->consoleplayer)
        {
         // listen for setup info from key player
-        con_printf("listening for network start info...\n");
+        printf("listening for network start info...\n");
         while (1)
            {
             //timeout += I_GetTime();
@@ -525,7 +521,7 @@ void D_ArbitrateNetStart (void)
         // key player, send the setup info
 // Player 1 is the "server" in that it controls the game.
 // It does not fulfill the other tasks of a server, though.
-        con_printf("sending network start info...\n");
+        printf("sending network start info...\n");
         do
            {
             if (CheckAbort() == true)
@@ -605,7 +601,7 @@ void D_CheckNetGame (void)
             return;
        }
 
-    con_printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
+    printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
                 startskill, deathmatch, startmap, startepisode);
 
     // read values out of doomcom
@@ -624,7 +620,7 @@ void D_CheckNetGame (void)
         nodeingame[i] = true;
        }
 	
-    con_printf("player %i of %i (%i nodes)\n", consoleplayer+1, doomcom->numplayers, doomcom->numnodes);
+    printf("player %i of %i (%i nodes)\n", consoleplayer+1, doomcom->numplayers, doomcom->numnodes);
    }
 
 
@@ -655,7 +651,7 @@ void D_QuitNetGame (void)
                 HSendPacket (j, NCMD_EXIT);
         I_WaitVBL (1);
        }
-    WSACleanup();
+    //WSACleanup();
     netgame = false;
    }
 

@@ -73,6 +73,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)\Debug\</OutDir>
+    <IncludePath>$(SolutionDir)\thirdparty\SDL2\include;$(SolutionDir)\thirdparty\glad\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\thirdparty\SDL2\lib\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\Release\</OutDir>
@@ -81,7 +84,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -94,7 +96,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>INITGUID;_DEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;RENDER_D3D%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INITGUID;_DEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -108,14 +110,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>$(ProjectDir)Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glext.lib;opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\Debug/GLDOOM.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -124,7 +125,6 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libs/x86%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -142,7 +142,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>INITGUID;_DEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;RENDER_D3D%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INITGUID;_DEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -155,28 +155,31 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>$(ProjectDir)Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glext.lib;opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Debug/GLDOOM.exe</OutputFile>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>.\Debug\GLDOOM.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\Debug/GLDOOM.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libs/x64%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\vcpkg\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Debug/GLDOOM.bsc</OutputFile>
     </Bscmake>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -189,7 +192,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>INITGUID;NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;RENDER_D3D%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INITGUID;NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -201,14 +204,14 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>$(ProjectDir)Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)thirdparty\glad\include;$(SolutionDir)thirdparty\SDL2\include</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glext.lib;opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;SDL2.lib;SDL2main.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\Release/GLDOOM.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/GLDOOM.pdb</ProgramDatabaseFile>
@@ -216,7 +219,7 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libs/x86%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\thirdparty\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -234,34 +237,33 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>INITGUID;NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;RENDER_D3D%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INITGUID;NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;MAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <PrecompiledHeaderOutputFile>$(Platform)\$(Configuration)\GLDOOM.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>$(Platform)\$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>$(Platform)\$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>$(Platform)\$(Configuration)\</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\Release/GLDOOM.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>$(ProjectDir)Includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)thirdparty\glad\include;$(SolutionDir)thirdparty\SDL2\include</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>glext.lib;glew32.lib;opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(Platform)\$(Configuration)\GLDOOM.exe</OutputFile>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;odbc32.lib;odbccp32.lib;winmm.lib;dinput8.lib;dsound.lib;wsock32.lib;SDL2.lib;SDL2main.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>$(Platform)\$(Configuration)\GLDOOM.pdb</ProgramDatabaseFile>
-      <SubSystem>Windows</SubSystem>
+      <ProgramDatabaseFile>$(SolutionDir)$(Platform)\$(Configuration)\GLDOOM.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libs/x64%(AdditionalLibraryDirectories);$(ProjectDir)glew/lib/x64%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\thirdparty\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -274,34 +276,31 @@
     <ClCompile Include="doomlib.c" />
     <ClCompile Include="doomstat.c" />
     <ClCompile Include="dstrings.c" />
-    <ClCompile Include="dxerr.c" />
     <ClCompile Include="d_console.c" />
     <ClCompile Include="d_items.c" />
     <ClCompile Include="d_main.c" />
     <ClCompile Include="d_net.c" />
     <ClCompile Include="f_finale.c" />
     <ClCompile Include="f_wipe.c" />
-    <ClCompile Include="gconsole.c" />
     <ClCompile Include="glsbar.c" />
     <ClCompile Include="GL_utils.c" />
     <ClCompile Include="gl_video.c" />
+    <ClCompile Include="gl_wipe.c" />
     <ClCompile Include="g_game.c" />
     <ClCompile Include="hu_lib.c" />
     <ClCompile Include="hu_stuff.c" />
     <ClCompile Include="info.c" />
-    <ClCompile Include="i_cd.c" />
-    <ClCompile Include="i_midi.c" />
     <ClCompile Include="i_net.c" />
+    <ClCompile Include="i_sdlmusic.c" />
     <ClCompile Include="i_system.c" />
-    <ClCompile Include="lights.c" />
     <ClCompile Include="mathlib.c" />
+    <ClCompile Include="mmus2mid.c" />
     <ClCompile Include="m_argv.c" />
     <ClCompile Include="m_bbox.c" />
     <ClCompile Include="m_cheat.c" />
     <ClCompile Include="m_fixed.c" />
     <ClCompile Include="m_menu.c" />
     <ClCompile Include="m_misc.c" />
-    <ClCompile Include="m_music.c" />
     <ClCompile Include="m_random.c" />
     <ClCompile Include="m_swap.c" />
     <ClCompile Include="p_ceilng.c" />
@@ -332,19 +331,19 @@
     <ClCompile Include="r_sky.c" />
     <ClCompile Include="r_things.c" />
     <ClCompile Include="savepic.c" />
-    <ClCompile Include="snd_dx.c" />
+    <ClCompile Include="i_sound.c" />
+    <ClCompile Include="i_sdlsound.c" />
     <ClCompile Include="sounds.c" />
     <ClCompile Include="st_lib.c" />
     <ClCompile Include="st_stuff.c" />
-    <ClCompile Include="sys_win.c" />
+    <ClCompile Include="sys_sdl.c" />
     <ClCompile Include="s_sound.c" />
     <ClCompile Include="tables.c" />
+    <ClCompile Include="thirdparty\glad\src\glad.c" />
     <ClCompile Include="v_video.c" />
-    <ClCompile Include="win_inpt.c" />
-    <ClCompile Include="win_joy.c" />
-    <ClCompile Include="win_kbrd.c" />
-    <ClCompile Include="win_mous.c" />
-    <ClCompile Include="win_video.c" />
+    <ClCompile Include="sdl_input.c" />
+    <ClCompile Include="sdl_kbrd.c" />
+    <ClCompile Include="sdl_video.c" />
     <ClCompile Include="wi_stuff.c" />
     <ClCompile Include="w_wad.c" />
     <ClCompile Include="z_zone.c" />
@@ -361,7 +360,6 @@
     <ClInclude Include="doomstat.h" />
     <ClInclude Include="doomtype.h" />
     <ClInclude Include="dstrings.h" />
-    <ClInclude Include="dxerr.h" />
     <ClInclude Include="d_console.h" />
     <ClInclude Include="d_englsh.h" />
     <ClInclude Include="d_event.h" />
@@ -374,7 +372,6 @@
     <ClInclude Include="d_ticcmd.h" />
     <ClInclude Include="f_finale.h" />
     <ClInclude Include="f_wipe.h" />
-    <ClInclude Include="gconsole.h" />
     <ClInclude Include="gldefs.h" />
     <ClInclude Include="glsbar.h" />
     <ClInclude Include="gl_utils.h" />
@@ -383,21 +380,19 @@
     <ClInclude Include="hu_lib.h" />
     <ClInclude Include="hu_stuff.h" />
     <ClInclude Include="info.h" />
-    <ClInclude Include="i_cd.h" />
-    <ClInclude Include="i_midi.h" />
     <ClInclude Include="i_net.h" />
     <ClInclude Include="i_sound.h" />
     <ClInclude Include="i_system.h" />
     <ClInclude Include="i_video.h" />
     <ClInclude Include="mathlib.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="mmus2mid.h" />
     <ClInclude Include="m_argv.h" />
     <ClInclude Include="m_bbox.h" />
     <ClInclude Include="m_cheat.h" />
     <ClInclude Include="m_fixed.h" />
     <ClInclude Include="m_menu.h" />
     <ClInclude Include="m_misc.h" />
-    <ClInclude Include="m_music.h" />
     <ClInclude Include="m_random.h" />
     <ClInclude Include="m_swap.h" />
     <ClInclude Include="p_inter.h" />
@@ -423,34 +418,39 @@
     <ClInclude Include="sounds.h" />
     <ClInclude Include="st_lib.h" />
     <ClInclude Include="st_stuff.h" />
-    <ClInclude Include="sys_win.h" />
+    <ClInclude Include="sys_sdl.h" />
     <ClInclude Include="s_sound.h" />
     <ClInclude Include="tables.h" />
     <ClInclude Include="v_video.h" />
-    <ClInclude Include="win_inpt.h" />
-    <ClInclude Include="win_joy.h" />
-    <ClInclude Include="win_kbrd.h" />
-    <ClInclude Include="win_mous.h" />
-    <ClInclude Include="win_video.h" />
+    <ClInclude Include="sdl_inpt.h" />
+    <ClInclude Include="sdl_kbrd.h" />
+    <ClInclude Include="sdl_video.h" />
     <ClInclude Include="wi_stuff.h" />
     <ClInclude Include="w_wad.h" />
     <ClInclude Include="z_zone.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="docs\gldoom.doc" />
     <None Include="gldfont.bin" />
     <None Include="INTERPIC.bin" />
     <None Include="Playpal.bin" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="controls.txt" />
-    <Text Include="doomflaw.txt" />
-    <Text Include="doomnet.txt" />
-    <Text Include="newlumps.txt" />
-    <Text Include="relnotes_94e.txt" />
-    <Text Include="TodoList.txt" />
+    <Image Include="glDoom.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="glDoom.ico" />
+    <Text Include="docs\changelog.txt" />
+    <Text Include="docs\controls.txt" />
+    <Text Include="docs\doomflaw.txt" />
+    <Text Include="docs\DOOMLIC.TXT" />
+    <Text Include="docs\newlumps.txt" />
+    <Text Include="docs\readme.bal.txt" />
+    <Text Include="docs\readme.bill.txt" />
+    <Text Include="docs\readme.dos.txt" />
+    <Text Include="docs\readme.matrox.txt" />
+    <Text Include="docs\relnotes_94d.txt" />
+    <Text Include="docs\relnotes_94e.txt" />
+    <Text Include="docs\TodoList.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

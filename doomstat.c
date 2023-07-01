@@ -42,6 +42,5 @@ Language_t   language = english;
 // Set if homebrew PWAD stuff has been added.
 dboolean	modifiedgame;
 
-
-
-
+// [crispy] Sigil
+boolean haved1e5;

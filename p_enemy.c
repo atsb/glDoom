@@ -589,7 +589,7 @@ void A_KeenDie (mobj_t* mo)
     }
 
     junk.tag = 666;
-    EV_DoDoor(&junk,open);
+    EV_DoDoor(&junk, dr_open);
 }
 
 
@@ -1663,6 +1663,11 @@ void A_BossDeath (mobj_t* mo)
 		if (mo->type != MT_SPIDER)
 		    return;
 		break;
+
+      // [crispy] Sigil
+      case 5:
+          return false;
+        break;
 		
 	      default:
 		return;
@@ -1739,7 +1744,7 @@ void A_BossDeath (mobj_t* mo)
 	    {
 	      case 6:
 		junk.tag = 666;
-		EV_DoDoor (&junk, blazeOpen);
+		EV_DoDoor (&junk, dr_blazeOpen);
 		return;
 		break;
 		

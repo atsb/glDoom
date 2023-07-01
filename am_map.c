@@ -21,9 +21,10 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <windows.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
+//#include <windows.h>
+//#include <gl/gl.h>
+//#include <gl/glu.h>
+#include "thirdparty/glad/include/glad/glad.h"
 
 static const char rcsid[] = "$Id: am_map.c,v 1.4 1997/02/03 21:24:33 b1 Exp $";
 
@@ -1066,7 +1067,7 @@ AM_drawFline
 	   || fl->b.x < 0 || fl->b.x >= f_w
 	   || fl->b.y < 0 || fl->b.y >= f_h)
     {
-	lfprintf("fuck %d \r", fuck++);
+	//lfprintf("fuck %d \r", fuck++);
 	return;
     }
 
@@ -1609,6 +1610,8 @@ void GL_AM_Drawer (void)
         return;
 
     //AM_clearFB(BACKGROUND);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     if (grid)
         GL_AM_drawGrid(GRIDCOLORS);
     GL_AM_drawWalls();

@@ -6,8 +6,7 @@
 // of any kind without express written consent from
 // the author, Bruce A. Lewis.
 //
-#include <windows.h>
-#include <gl/gl.h>
+#include "thirdparty/glad/include/glad/glad.h"
 #include <ctype.h>
 ////////////////////////////////////////////////////////////////////////
 // Doom defines and external data
@@ -56,7 +55,6 @@ void M_WriteText(int x, int y, char *string);
 // Doom98 code
 ////////////////////////////////////////////////////////////////////////
 
-#include "m_music.h"
 #include "gl_utils.h"
 
 void WriteDebug(char*);
@@ -73,7 +71,7 @@ extern int TexWide, TexHigh;
 #define CONSREV      'C'
 #define CONSMSGS     64
 
-char szProgName[] = "GLDOOM";
+char szProgName[] = "GLDOOM-RE";
 char szVersion[8];
 
 typedef enum { asleep, sleepy, waking, awake } consolemode;
@@ -125,7 +123,7 @@ char *PowerUpOn[] = { "INVULNERABILITY ON", "BERSERKER ON", "INVISIBILITY ON", "
 char *PowerUpOff[] = { "INVULNERABILITY OFF", "BERSERKER OFF", "INVISIBILITY OFF", "ENVIRONMENT SUIT OFF", "FULL MAP OFF", "LIGHT AMPLIFICATION GOGGLES OFF" };
 char  PowerUpKey[] = "VSIRAL";
 
-typedef enum { msg_ammo, msg_health, msg_armor, msg_keys, msg_weapons, msg_all, msg_amap, msg_pack, msg_bear };
+enum { msg_ammo, msg_health, msg_armor, msg_keys, msg_weapons, msg_all, msg_amap, msg_pack, msg_bear };
 
 char *Gimme[] = { "Full ammo given", "Full health given", "Full armor given", "All keys given", "All weapons given",
                   "You got it ALL!", "Full automap given", "Backpack given", "You are now a one person army!" };
@@ -167,19 +165,6 @@ extern int  gl_widetex;
 
 extern char gamename[128];
 extern int  hudmode;
-
-extern int  usejoystick;
-extern int	joybfire;
-extern int	joybstrafe;
-extern int	joybuse;
-extern int	joybspeed;
-
-extern int  joydead;
-
-extern int  joyb1;
-extern int  joyb2;
-extern int  joyb3;
-extern int  joyb4;
 
 extern int          autorun;
 extern int          swap_stereo;
@@ -241,10 +226,6 @@ KeyDef_t cvars[] = { &key_right, "KEY_RIGHT", cv_scan, 0,
                      &key_use, "KEY_USE", cv_scan, 0,
                      &key_strafe, "KEY_STRAFE", cv_scan, 0,
                      &key_speed, "KEY_SPEED", cv_scan, 0,
-                     &joyb1, "JOYB1", cv_scan, 0,
-                     &joyb2, "JOYB2", cv_scan, 0,
-                     &joyb3, "JOYB3", cv_scan, 0,
-                     &joyb4, "JOYB4", cv_scan, 0,
                      &mouseb1, "MOUSEB1", cv_scan, 0,
                      &mouseb2, "MOUSEB2", cv_scan, 0,
                      &mouseb3, "MOUSEB3", cv_scan, 0,
@@ -257,11 +238,6 @@ KeyDef_t cvars[] = { &key_right, "KEY_RIGHT", cv_scan, 0,
                      &mousebfire, "MOUSEBFIRE", cv_value, 2,
                      &mousebstrafe, "MOUSEBSTRAFE", cv_value, 2,
                      &mousebforward, "MOUSEBFORWARD", cv_value, 2,
-                     &usejoystick, "USEJOYSTICK", cv_value, 1,  // true/false
-                     &joybfire, "JOYBFIRE", cv_value, 3,
-                     &joybstrafe, "JOYBSTRAFE", cv_value, 3,
-                     &joybuse, "JOYBUSE", cv_value, 3,
-                     &joybspeed, "JOYBSPEED", cv_value, 3,
                      &mvert, "MVERT", cv_value, 1,              // true/false
                      &mouse_factor, "MOUSE_FACTOR", cv_value, 4, // multiplier for mouse
                      &mlook, "MLOOK", cv_value, 1,              // true/false
@@ -275,7 +251,6 @@ KeyDef_t cvars[] = { &key_right, "KEY_RIGHT", cv_scan, 0,
                      &gl_widetex, "GL_WIDETEX", cv_value, 1,    // true/false
                      &nosound, "NOSOUND", cv_value, 1,          // true/false
                      &hudmode, "HUDMODE", cv_value, 3,
-                     &joydead, "JOYDEAD", cv_value, 5000,
                      &gamename, "GAME", cv_string, 128,// true/false
                      NULL,       "", cv_value, 0 };
 
@@ -508,7 +483,7 @@ char *scanname[] = {    "NULL", // no key
 char *CleanUpCommand(char *command)
    {
     char *tchar;
-    int   i;
+    size_t   i;
 
     tchar = command;
 
@@ -891,8 +866,6 @@ void MaxMap()
 
 dboolean GiveAll(char *cmd)
    {
-    int i;
-
     MaxWeapons();
     MaxArmor();
     MaxHealth();
@@ -992,7 +965,7 @@ dboolean GiveItems(char *cmd)
                {
                 if (give_commands[i].keylength > 0)
                    {
-                    if (D_strncasecmp(give_commands[i].keyword, s, give_commands[i].keylength) == 0)
+                    if (strncasecmp(give_commands[i].keyword, s, give_commands[i].keylength) == 0)
                        {
                         //s = CleanUpCommand(&s[give_commands[i].keylength]);
                         give_commands[i].command(s);
@@ -1000,7 +973,7 @@ dboolean GiveItems(char *cmd)
                    }
                 else
                    {
-                    if (D_strcasecmp(give_commands[i].keyword, s) == 0)
+                    if (strcasecmp(give_commands[i].keyword, s) == 0)
                        {
                         give_commands[i].command(s);
                        }
@@ -1019,8 +992,8 @@ dboolean GiveItems(char *cmd)
 
 dboolean MidiCommand(char *cmd)
    {
-    if ((D_strcasecmp(cmd, "pause") == 0) || (D_strcasecmp(cmd, "resume") == 0))
-        PauseResumeMusic();
+    if ((strcasecmp(cmd, "pause") == 0) || (strcasecmp(cmd, "resume") == 0))
+        //PauseResumeMusic();
     return false;
    }
 
@@ -1055,7 +1028,7 @@ dboolean ShowPosition(char *cmd)
     return false;
    }
 
-
+/*
 con_command_t cd_commands[] = { "on",     0, PlayCDMusic,       "starts cd playback",
                                 "play",   0, PlayCDMusic,       "starts cd playback",
                                 "pause",  0, PauseResumeMusic,  "pauses/resumes music playback",
@@ -1067,10 +1040,11 @@ con_command_t cd_commands[] = { "on",     0, PlayCDMusic,       "starts cd playb
                                 "prev",   0, PlayPrevSong,      "plays previous cut on CD",
                                 "-",      0, PlayPrevSong,      "plays previous cut on CD",
                                 0, 0, 0, 0 };
+*/
 
 dboolean CDCommand(char *cmd)
    {
-    int i;
+    /*int i;
 
     // Control the CD Player...
     for (i = 0; cd_commands[i].keyword != 0; i++)
@@ -1093,7 +1067,7 @@ dboolean CDCommand(char *cmd)
        }
     if (isdigits(cmd) && (strlen(cmd) < 3))
         PlayCDTrack(atoi(cmd));
-    return false;
+    return false;*/
    }
 
 char *NewMapSyntax[] = { "Syntax: MAP EXMY (X = episode & Y = mission)",
@@ -1123,7 +1097,7 @@ dboolean LoadNewMap(char *cmd)
                 return false;
                }
            }
-        if (strnicmp(cmd,"map",3) == 0)
+        if (strncasecmp(cmd,"map",3) == 0)
            {
             if ((cmd[3] >= '0') && (cmd[3] <= '9') &&
                 (cmd[4] >= '0') && (cmd[4] <= '9'))
@@ -1188,7 +1162,8 @@ dboolean ChangeLevel(char *cmd)
        {
         // 'clev' change-level cheat
         char buf[3];
-        int  i, epsd;
+        size_t  i;
+        int epsd;
         int  map;
       
         strcpy(buf, cmd);
@@ -1297,7 +1272,7 @@ dboolean BindCommand(char *cmd)
        {
         if (cvars[i].cv_type != cv_scan)
             continue;
-        if (D_strcasecmp(ts, cvars[i].name) == 0)
+        if (strcasecmp(ts, cvars[i].name) == 0)
            {
             ts = strtok(NULL, " ");
             if (ts != NULL)
@@ -1307,7 +1282,7 @@ dboolean BindCommand(char *cmd)
                    {
                     if (!scanname[sc][0])
                        continue;
-                    if (D_strcasecmp(ts, scanname[sc]) == 0)
+                    if (strcasecmp(ts, scanname[sc]) == 0)
                        {
                         sprintf(buf, "CMD %s BOUND TO SCANCODE %3d\n", cvars[i].name, sc);
                         CO_AddConsoleMessage(buf);
@@ -1479,7 +1454,7 @@ dboolean CO_Responder(event_t* ev)
     static dboolean bDisplayed = false;
     static dboolean bShiftState = false;
 
-    if ((ev->type == ev_keydown) && (ev->data1 == KEY_CONSOLE))
+    if ((ev->type == ev_keydown) && (ev->data1 == SDL_SCANCODE_GRAVE))
        {
         if (bConsoleActive == true)
            {
@@ -1499,7 +1474,7 @@ dboolean CO_Responder(event_t* ev)
            }
        }
 
-    if ((ev->type == ev_keydown) && (ev->data1 == KEY_ESCAPE))
+    if ((ev->type == ev_keydown) && (ev->data1 == SDL_SCANCODE_ESCAPE))
        {
         if (bConsoleActive == true)
            {
@@ -1512,13 +1487,13 @@ dboolean CO_Responder(event_t* ev)
     if (bConsoleActive == false)
        return false;
 
-    if ((ev->type == ev_keydown) && ((ev->data1 == KEY_RSHIFT) || (ev->data1 == KEY_LSHIFT)))
+    if ((ev->type == ev_keydown) && ((ev->data1 == SDL_SCANCODE_RSHIFT) || (ev->data1 == SDL_SCANCODE_LSHIFT)))
        {
         bShiftState = true;
         return false;
        }
 
-    if ((ev->type == ev_keyup) && ((ev->data1 == KEY_RSHIFT) || (ev->data1 == KEY_LSHIFT)))
+    if ((ev->type == ev_keyup) && ((ev->data1 == SDL_SCANCODE_RSHIFT) || (ev->data1 == SDL_SCANCODE_LSHIFT)))
        {
         bShiftState = false;
         return false;
@@ -1531,18 +1506,18 @@ dboolean CO_Responder(event_t* ev)
        {
         switch(ev->data1)
            {
-            case KEY_SCRNSHOT:
+            /*case KEY_SCRNSHOT:
                  G_ScreenShot();
-                 break;
-            case KEY_BACKSPACE:
-            case KEY_LEFTARROW:
+                 break;*/
+            case SDL_SCANCODE_BACKSPACE:
+            case SDL_SCANCODE_LEFT:
                  if (iCCursor > 0)
                     {
                      iCCursor--;
                      szCommand[iCCursor] = '\0';
                     }
                  break;
-            case KEY_ENTER:
+            case SDL_SCANCODE_RETURN:
                  if (iCCursor > 0)
                     {
                      szCmd = strtok(szCommand, ";");
@@ -1561,7 +1536,7 @@ dboolean CO_Responder(event_t* ev)
                      bDisplayed = false;
                      break;
                     }
-            case KEY_TAB:
+            case SDL_SCANCODE_TAB:
                  return false;
             default:
                  if (iCCursor < CMDLENGTH)
@@ -1578,7 +1553,7 @@ dboolean CO_Responder(event_t* ev)
                     }
                  break;
            }
-        if ((D_strcasecmp(szCommand, "idbehold") == 0) && (bDisplayed == false))
+        if ((strcasecmp(szCommand, "idbehold") == 0) && (bDisplayed == false))
            {
             CO_AddConsoleMessage(STSTR_BEHOLD);
             bDisplayed = true;
@@ -1712,7 +1687,7 @@ extern float SetBack;
 
 void GL_DrawConsole()
    {
-    int h, v, yoff, d, s, i, j, clines, mline;
+    int i, clines, mline;
     static char tstr[32];
     static int  cursor = 0;
     int         curpos;
@@ -1909,7 +1884,7 @@ void CO_AddConsoleMessage(char *s)
 
 int CO_HandleCommand(char *cmd)
    {
-    int    i, sc;
+    int    i;
     char  *ts;
 
     // b. - enabled for more debug fun.
@@ -1919,7 +1894,7 @@ int CO_HandleCommand(char *cmd)
        {
         if (con_commands[i].keylength > 0)
            {
-            if (D_strncasecmp(con_commands[i].keyword, cmd, con_commands[i].keylength) == 0)
+            if (strncasecmp(con_commands[i].keyword, cmd, con_commands[i].keylength) == 0)
                {
                 cmd = CleanUpCommand(&cmd[con_commands[i].keylength]);
                 return(con_commands[i].command(cmd));
@@ -1927,14 +1902,14 @@ int CO_HandleCommand(char *cmd)
            }
         else
            {
-            if (D_strcasecmp(con_commands[i].keyword, cmd) == 0)
+            if (strcasecmp(con_commands[i].keyword, cmd) == 0)
                {
                 return(con_commands[i].command(cmd));
                }
            }
        }
     
-    if (strnicmp(cmd, "record ", 7) == 0)
+    if (strncasecmp(cmd, "record ", 7) == 0)
        {
         static char buf[ST_MSGWIDTH];
         if (strlen(&cmd[7]) > 0)
@@ -1949,7 +1924,7 @@ int CO_HandleCommand(char *cmd)
         return false;
        }
 
-    if (D_strcasecmp(cmd, "finish") == 0)
+    if (strcasecmp(cmd, "finish") == 0)
        {
         static char buf[ST_MSGWIDTH];
         G_EndDemo_II();
@@ -1958,7 +1933,7 @@ int CO_HandleCommand(char *cmd)
         return false;
        }
 
-    if (strnicmp(cmd, "play ", 5) == 0)
+    if (strncasecmp(cmd, "play ", 5) == 0)
        {
         static char buf[ST_MSGWIDTH];
         if (strlen(&cmd[7]) > 0)
@@ -1979,7 +1954,7 @@ int CO_HandleCommand(char *cmd)
         return false;
        }
 
-    if (D_strcasecmp(cmd, "cmdlist") == 0)
+    if (strcasecmp(cmd, "cmdlist") == 0)
        {
         i = 0;
         while (cmdlist[i][0] != '\0')
@@ -1987,7 +1962,7 @@ int CO_HandleCommand(char *cmd)
         return false;
        }
 
-    if (D_strcasecmp(cmd, "cvarlist") == 0)
+    if (strcasecmp(cmd, "cvarlist") == 0)
        {
         static char buf[128];
         i = 0;
@@ -2005,7 +1980,7 @@ int CO_HandleCommand(char *cmd)
        {
         if ((cvars[i].cv_type != cv_value) && (cvars[i].cv_type != cv_string))
             continue;
-        if (D_strcasecmp(ts, cvars[i].name) == 0)
+        if (strcasecmp(ts, cvars[i].name) == 0)
            {
             static char buf[ST_MSGWIDTH];
             ts = strtok(NULL, " ");

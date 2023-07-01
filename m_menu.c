@@ -25,16 +25,20 @@
 static const char
 rcsid[] = "$Id: m_menu.c,v 1.7 1997/02/03 22:45:10 b1 Exp $";
 
-#include <windows.h>
-#include <gl/gl.h>
+#include "thirdparty/glad/include/glad/glad.h"
 
-//#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <ctype.h>
+
+#ifdef _WIN32
 #include <io.h>
+#else
+#include <inttypes.h>
+#include <unistd.h>
+#endif
 
 
 #include "doomdef.h"
@@ -68,7 +72,7 @@ rcsid[] = "$Id: m_menu.c,v 1.7 1997/02/03 22:45:10 b1 Exp $";
 #include "m_menu.h"
 
 #include "d_console.h"
-#include "sys_win.h"
+#include "sys_sdl.h"
 #include "gl_utils.h"
 #include "gldefs.h"
 
@@ -253,12 +257,7 @@ extern int destination_keys[MAXPLAYERS];
 extern int mousebfire;                                   
 extern int mousebstrafe;                               
 extern int mousebforward;
-extern int mousebbackward;
-
-extern int joybfire;
-extern int joybstrafe;                               
-extern int joybuse;                                   
-extern int joybspeed;                
+extern int mousebbackward;              
                      
 extern int default_weapon_recoil;   // weapon recoil        
 extern int weapon_recoil;           // weapon recoil           
@@ -315,10 +314,9 @@ extern int map_secret_after; //secrets do not appear til after bagged
 //extern default_t defaults[];
 extern int numdefaults;
 
-extern windata_t  WinData;
 extern video_t    video;
 
-extern int ConFont[2][96];
+//extern int ConFont[2][96];
 
 extern float SetBack;
 
@@ -345,7 +343,7 @@ text_color_t  tc[] = { 1.0f, 1.0f, 1.0f,
 
 void GL_DrawSetupText(int x, int y, char *text, int color)
    {
-    int c, ch;
+    /*int c, ch;
     float left, right, top, bottom;
 
     left = x - 160.0f;
@@ -387,7 +385,7 @@ void GL_DrawSetupText(int x, int y, char *text, int color)
            }
         left += gl_fwidth;
        }
-    glColor3f( 1.0f, 1.0f, 1.0f );
+    glColor3f( 1.0f, 1.0f, 1.0f );*/
    }
 
 //
@@ -439,7 +437,7 @@ void GL_DrawThermo(int x, int y, int thermWidth, int thermDot );
 
 GLTexData  AmmoBoxSkin;
 
-GLTexData  glMainMenu[7], glEpisode[4], glNewGame[5], glOptions[9], glSound[4], glSetupMenu[7], glMultiPlayer[3];
+GLTexData  glMainMenu[7], glEpisode[5], glNewGame[5], glOptions[9], glSound[4], glSetupMenu[7], glMultiPlayer[3];
 GLTexData  GameLogo, glOptionTitle, glEpisodeTitle, glNewGameTitle, glSkillTitle, glMPlayerTitle, glDisplayTitle;
 GLTexData  glSoundVolTitle, glLoadGameTitle, glSaveGameTitle, glMouseTitle, glGame[3], glMouse[5], glDisplay[6];
 GLTexData  glPlayerSetupTitle;
@@ -662,6 +660,7 @@ enum
     ep2,
     ep3,
     ep4,
+    ep5, // [crispy] Sigil
     ep_end
 } episodes_e;
 
@@ -670,7 +669,8 @@ menuitem_t EpisodeMenu[]=
     {1,"M_EPI1", M_Episode,'k'},
     {1,"M_EPI2", M_Episode,'t'},
     {1,"M_EPI3", M_Episode,'i'},
-    {1,"M_EPI4", M_Episode,'t'}
+    {1,"M_EPI4", M_Episode,'t'},
+    {1,"M_EPI5", M_Episode,'s'} // [crispy] Sigil
 };
 
 menu_t  EpiDef =
@@ -1224,15 +1224,15 @@ void M_ReadSaveStrings(void)
 	else
 	    sprintf(name,SAVEGAMENAME"%d.dsg",i);
 
-	handle = _open (name, O_RDONLY | 0, 0666);
+	handle = Open (name, O_RDONLY | 0, 0666);
 	if (handle == -1)
 	{
 	    strcpy(&savegamestrings[i][0],EMPTYSTRING);
 	    LoadGameMenu[i].status = 0;
 	    continue;
 	}
-	count = _read (handle, &savegamestrings[i], SAVESTRINGSIZE);
-	_close (handle);
+	count = Read (handle, &savegamestrings[i], SAVESTRINGSIZE);
+	Close (handle);
 	LoadGameMenu[i].status = 1;
     }
 }
@@ -1554,7 +1554,7 @@ char    tempstring[80];
 
 void M_QuickSaveResponse(int ch)
 {
-    if (ch == KEY_Y)
+    if (ch == SDL_SCANCODE_Y)
     {
 	M_DoSave(quickSaveSlot);
 	S_StartSound(NULL,sfx_swtchx);
@@ -1591,7 +1591,7 @@ void M_QuickSave(void)
 //
 void M_QuickLoadResponse(int ch)
 {
-    if (ch == KEY_Y)
+    if (ch == SDL_SCANCODE_Y)
     {
 	M_LoadSelect(quickSaveSlot);
 	S_StartSound(NULL,sfx_swtchx);
@@ -2206,14 +2206,14 @@ void GL_DrawEpisode(void)
 
 void M_VerifyNightmare(int ch)
 {
-    if (ch != KEY_Y)
+    if (ch != SDL_SCANCODE_Y)
 	return;
 		
     G_DeferedInitNew(nightmare,epi+1,1);
     M_ClearMenus ();
 }
 
-extern BOOL bShowTitle;
+extern dboolean bShowTitle;
 
 void M_ChooseSkill(int choice)
 {
@@ -2230,23 +2230,14 @@ void M_ChooseSkill(int choice)
 
 void M_Episode(int choice)
 {
-    if ( (gamemode == shareware)
-	 && choice)
+    if ((gamemode == shareware)
+        && choice)
     {
-	M_StartMessage(SWSTRING,NULL,false);
-	M_SetupNextMenu(&ReadDef1);
-	return;
+        M_StartMessage(SWSTRING, NULL, false);
+        M_SetupNextMenu(&ReadDef1);
+        return;
     }
 
-    // Yet another hack...
-    if ( (gamemode == registered)
-	 && (choice > 2))
-    {
-      fprintf( stderr,
-	       "M_Episode: 4th episode requires UltimateDOOM\n");
-      choice = 0;
-    }
-	 
     epi = choice;
     M_SetupNextMenu(&NewDef);
 }
@@ -2286,7 +2277,7 @@ void M_DrawBackground(char* patchname)
 extern DW_TexList TexList[1024];
 extern int        TexCount;
 extern int        ftranslate[1024];
-extern BOOL       TexTransparent;
+extern dboolean TexTransparent;
 
 /////////////////////////////
 //
@@ -2528,7 +2519,7 @@ void M_ChangeMessages(int choice)
 //
 void M_EndGameResponse(int ch)
 {
-    if (ch != KEY_Y)
+    if (ch != SDL_SCANCODE_Y)
 	return;
 		
     currentMenu->lastOn = itemOn;
@@ -2609,11 +2600,11 @@ int     quitsounds2[8] =
 };
 
 
-char MsgText[2048];
+static char MsgText[2048];
 
 void M_QuitResponse(int ch)
 {
-    if (ch != KEY_Y)
+    if (ch != SDL_SCANCODE_Y)
        {
         return;
        }
@@ -3513,248 +3504,22 @@ char *sckeyname[]={ "NULL", // no key
 int M_GetKeyString(int c,int offset)
   {
   char* s;
+  SDL_Keycode keycode;
 
-  if (c == KEY_PAUSE)
-     {
-      strcpy(&menu_buffer[offset],"PAUS"); // string to display
+  if (c == SDL_SCANCODE_PAUSE)
+  {
+      strcpy(&menu_buffer[offset], "PAUS"); // string to display
       offset += 4;
-     }
-  else
-  if (strlen(sckeyname[c]) > 0)
-     {
-      strcpy(&menu_buffer[offset],sckeyname[c]); // string to display
-      offset += strlen(sckeyname[c]);
-     }
-  else
-     {
-      strcpy(&menu_buffer[offset],"JUNK");
-      offset += 4;
-     }
-  return offset;
-
-  if (c >= 33 && c <= 126)
-    {
-
-    // The '=', ',', and '.' keys originally meant the shifted
-    // versions of those keys, but w/o having to shift them in
-    // the game. Any actions that are mapped to these keys will
-    // still mean their shifted versions. Could be changed later
-    // if someone can come up with a better way to deal with them.
-
-    if (c == '=')      // probably means the '+' key?
-      c = '+';
-    else if (c == ',') // probably means the '<' key?
-      c = '<';
-    else if (c == '.') // probably means the '>' key?
-      c = '>';
-    menu_buffer[offset++] = c; // Just insert the ascii key
-    menu_buffer[offset] = 0;
-    }
+  }
   else
     {
 
-    // Retrieve 4-letter (max) string representing the key
-/*
-    case KEYD_TAB:
-      s = "TAB";
-      break;
-    case KEYD_ENTER:
-      s = "ENTR"; 
-      break;
-    case KEYD_ESCAPE:
-      s = "ESC";
-      break;
-    case KEYD_SPACEBAR:
-      s = "SPAC";
-      break;
-    case KEYD_BACKSPACE:
-      s = "BACK";
-      break;
-    case KEYD_RCTRL:
-      s = "CTRL";
-      break;
-    case KEYD_LEFTARROW:
-      s = "LARR";
-      break;
-    case KEYD_UPARROW:
-      s = "UARR";
-      break;
-    case KEYD_RIGHTARROW:
-      s = "RARR";
-      break;
-    case KEYD_DOWNARROW:
-      s = "DARR";
-      break;
-    case KEYD_RSHIFT:
-      s = "SHFT";
-      break;
-    case KEYD_RALT:
-      s = "ALT";
-      break;
-    case KEYD_CAPSLOCK:
-      s = "CAPS";
-      break;
-    case KEYD_F1:
-      s = "F1";
-      break;
-    case KEYD_F2:
-      s = "F2";
-      break;
-    case KEYD_F3:
-      s = "F3";
-      break;
-    case KEYD_F4:
-      s = "F4";
-      break;
-    case KEYD_F5:
-      s = "F5";
-      break;
-    case KEYD_F6:
-      s = "F6";
-      break;
-    case KEYD_F7:
-      s = "F7";
-      break;
-    case KEYD_F8:
-      s = "F8";
-      break;
-    case KEYD_F9:
-      s = "F9";
-      break;
-    case KEYD_F10:
-      s = "F10";
-      break;
-    case KEYD_SCROLLLOCK:
-      s = "SCRL";
-      break;
-    case KEYD_HOME:
-      s = "HOME";
-      break;
-    case KEYD_PAGEUP:
-      s = "PGUP";
-      break;
-    case KEYD_END:
-      s = "END";
-      break;
-    case KEYD_PAGEDOWN:
-      s = "PGDN";
-      break;
-    case KEYD_INSERT:
-      s = "INST";
-      break;
-    case KEYD_F11:
-      s = "F11";
-      break;
-    case KEYD_F12:
-      s = "F12";
-      break;
-    case KEYD_PAUSE:
-      s = "PAUS";
-      break;
+    keycode = SDL_GetKeyFromScancode(c);
+    s = SDL_GetKeyName(keycode);
 
-*/
-    switch(c)
-      {
-    case KEY_TAB:
-      s = "TAB";
-      break;
-    case KEY_ENTER:
-      s = "ENTR"; 
-      break;
-    case KEY_ESCAPE:
-      s = "ESC";
-      break;
-    case KEY_SPACE:
-      s = "SPAC";
-      break;
-    case KEY_BACKSPACE:
-      s = "BACK";
-      break;
-    case KEY_RCTRL:
-      s = "CTRL";
-      break;
-    case KEY_LEFTARROW:
-      s = "LARR";
-      break;
-    case KEY_UPARROW:
-      s = "UARR";
-      break;
-    case KEY_RIGHTARROW:
-      s = "RARR";
-      break;
-    case KEY_DOWNARROW:
-      s = "DARR";
-      break;
-    case KEY_RSHIFT:
-      s = "SHFT";
-      break;
-    case KEY_RALT:
-      s = "ALT";
-      break;
-    case KEY_CAPSLOCK:
-      s = "CAPS";
-      break;
-    case KEY_F1:
-      s = "F1";
-      break;
-    case KEY_F2:
-      s = "F2";
-      break;
-    case KEY_F3:
-      s = "F3";
-      break;
-    case KEY_F4:
-      s = "F4";
-      break;
-    case KEY_F5:
-      s = "F5";
-      break;
-    case KEY_F6:
-      s = "F6";
-      break;
-    case KEY_F7:
-      s = "F7";
-      break;
-    case KEY_F8:
-      s = "F8";
-      break;
-    case KEY_F9:
-      s = "F9";
-      break;
-    case KEY_F10:
-      s = "F10";
-      break;
-    case KEY_SCROLL:
-      s = "SCRL";
-      break;
-    case KEY_HOME:
-      s = "HOME";
-      break;
-    case KEY_PRIOR:
-      s = "PGUP";
-      break;
-    case KEY_END:
-      s = "END";
-      break;
-    case KEY_NEXT:
-      s = "PGDN";
-      break;
-    case KEY_INSERT:
-      s = "INST";
-      break;
-    case KEY_F11:
-      s = "F11";
-      break;
-    case KEY_F12:
-      s = "F12";
-      break;
-    case KEY_PAUSE:
-      s = "PAUS";
-      break;
-    default:
-      s = "JUNK";
-      break;
-      }
+    if (s == "")
+        s = "JUNK";
+
     strcpy(&menu_buffer[offset],s); // string to display
     offset += strlen(s);
     }
@@ -4194,19 +3959,20 @@ int mult_screens_index; // the index of the current screen in a set
 // Can we generate a keyboard equivalency table at runtime?
 
 setup_menu_t keys_settings1[] =  // Key Binding screen strings       
+
 {
   {"MOVEMENT"    ,(S_SKIP|S_TITLE),m_null,KB_X,KB_Y ,0                  ,0,0,0,0,0,0},
   {"FORWARD"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 1*8,&key_up            ,&mousebforward,0,0,0,0,0},
   {"BACKWARD"    ,S_KEY       ,m_scrn,KB_X,KB_Y+ 2*8,&key_down          ,0,0,0,0,0,0},
   {"TURN LEFT"   ,S_KEY       ,m_scrn,KB_X,KB_Y+ 3*8,&key_left          ,0,0,0,0,0,0},
   {"TURN RIGHT"  ,S_KEY       ,m_scrn,KB_X,KB_Y+ 4*8,&key_right         ,0,0,0,0,0,0},
-  {"RUN"         ,S_KEY       ,m_scrn,KB_X,KB_Y+ 5*8,&key_speed         ,0,&joybspeed,0,0,0,0},
+  {"RUN"         ,S_KEY       ,m_scrn,KB_X,KB_Y+ 5*8,&key_speed         ,0,0,0,0,0,0},
   {"STRAFE LEFT" ,S_KEY       ,m_scrn,KB_X,KB_Y+ 6*8,&key_strafeleft    ,0,0,0,0,0,0},
   {"STRAFE RIGHT",S_KEY       ,m_scrn,KB_X,KB_Y+ 7*8,&key_straferight   ,0,0,0,0,0,0},
-  {"STRAFE"      ,S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,&key_strafe        ,&mousebstrafe,&joybstrafe,0,0,0,0},
+  {"STRAFE"      ,S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,&key_strafe        ,&mousebstrafe,0,0,0,0,0},
   {"AUTORUN"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,&key_autorun       ,0,0,0,0,0,0},
   {"180 TURN"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,&key_reverse       ,0,0,0,0,0,0},
-  {"USE"         ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,&key_use           ,&mousebforward,&joybuse,0,0,0,0},
+  {"USE"         ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,&key_use           ,&mousebforward,0,0,0,0,0},
 
   {"MENUS"       ,(S_SKIP|S_TITLE),m_null,KB_X,KB_Y+12*8,0              ,0,0,0,0,0,0},
   {"NEXT ITEM"   ,S_KEY       ,m_menu,KB_X,KB_Y+13*8,&key_menu_down     ,0,0,0,0,0,0},
@@ -4290,7 +4056,7 @@ setup_menu_t keys_settings3[] =  // Key Binding screen strings
   {"CHAINSAW",S_KEY       ,m_scrn,KB_X,KB_Y+ 8*8,&key_weapon8     ,0,0,0,0,0,0},
   {"SSG"     ,S_KEY       ,m_scrn,KB_X,KB_Y+ 9*8,&key_weapon9     ,0,0,0,0,0,0},
   {"BEST"    ,S_KEY       ,m_scrn,KB_X,KB_Y+10*8,&key_weapontoggle,0,0,0,0,0,0},
-  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,&key_fire        ,&mousebfire,&joybfire,0,0,0,0},
+  {"FIRE"    ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,&key_fire        ,&mousebfire,0,0,0,0,0},
 
   {"<- PREV",(S_SKIP|S_PREV),m_null,KB_PREV,KB_Y+20*8,0,0,0,(int *)keys_settings2,0,0,0},
   {"NEXT ->",(S_SKIP|S_NEXT),m_null,KB_NEXT,KB_Y+20*8,0,0,0,(int *)keys_settings4,0,0,0},
@@ -5201,7 +4967,7 @@ dboolean M_Responder (event_t* ev)
     if (messageToPrint)
        {
         if (messageNeedsInput == true &&
-	        !(ch == KEY_SPACE || ch == KEY_N || ch == KEY_Y || ch == KEY_ESCAPE))
+	        !(ch == SDL_SCANCODE_SPACE || ch == SDL_SCANCODE_N || ch == SDL_SCANCODE_Y || ch == SDL_SCANCODE_ESCAPE))
            {
             return false;
            }
@@ -5767,7 +5533,8 @@ dboolean M_Responder (event_t* ev)
           else if ((ch == key_menu_enter) ||
                (ch == key_menu_escape))
             {
-            (char *)ptr1->m_var1 = chat_string_buffer;
+            //(char *)ptr1->m_var1 = chat_string_buffer;
+            strncpy((char*)(*(ptr1->m_var1)), chat_string_buffer, CHAT_STRING_BFR_SIZE);
             M_SelectDone(ptr1);         // phares 4/17/98
             }
 
@@ -5875,7 +5642,8 @@ dboolean M_Responder (event_t* ev)
         // and free old string's memory.
 
         free((char *)(*(ptr1->m_var1)));
-        (char *)ptr1->m_var1 = chat_string_buffer;
+        strncpy((char*)(*(ptr1->m_var1)), chat_string_buffer, CHAT_STRING_BFR_SIZE);
+        //(char *)ptr1->m_var1 = chat_string_buffer;
         chat_index = 0; // current cursor position in chat_string_buffer
         }
 
@@ -6104,108 +5872,113 @@ dboolean M_Responder (event_t* ev)
   return false;
     
     
-/*    
+    
     // Keys usable within menu
-    switch (ch)
-    {
-      case KEY_DOWNARROW:
-	do
-	{
-	    if (itemOn+1 > currentMenu->numitems-1)
-		itemOn = 0;
-	    else itemOn++;
-	    S_StartSound(NULL,sfx_pstop);
-	} while(currentMenu->menuitems[itemOn].status==-1);
-	return true;
-		
-      case KEY_UPARROW:
-	do
-	{
-	    if (!itemOn)
-		itemOn = currentMenu->numitems-1;
-	    else itemOn--;
-	    S_StartSound(NULL,sfx_pstop);
-	} while(currentMenu->menuitems[itemOn].status==-1);
-	return true;
+ //   switch (ch)
+ //   {
+ //     case SDL_SCANCODE_DOWN:
+	//do
+	//{
+	//    if (itemOn+1 > currentMenu->numitems-1)
+	//	itemOn = 0;
+	//    else itemOn++;
+	//    S_StartSound(NULL,sfx_pstop);
+	//} while(currentMenu->menuitems[itemOn].status==-1);
+	//return true;
+	//	
+ //     case SDL_SCANCODE_UP:
+	//do
+	//{
+	//    if (!itemOn)
+	//	itemOn = currentMenu->numitems-1;
+	//    else itemOn--;
+	//    S_StartSound(NULL,sfx_pstop);
+	//} while(currentMenu->menuitems[itemOn].status==-1);
+	//return true;
 
-      case KEY_LEFTARROW:
-	if (currentMenu->menuitems[itemOn].routine &&
-	    currentMenu->menuitems[itemOn].status == 2)
-	{
-	    S_StartSound(NULL,sfx_stnmov);
-	    currentMenu->menuitems[itemOn].routine(0);
-	}
-	return true;
-		
-      case KEY_RIGHTARROW:
-	if (currentMenu->menuitems[itemOn].routine &&
-	    currentMenu->menuitems[itemOn].status == 2)
-	{
-	    S_StartSound(NULL,sfx_stnmov);
-	    currentMenu->menuitems[itemOn].routine(1);
-	}
-	return true;
+ //     case SDL_SCANCODE_LEFT:
+	//if (currentMenu->menuitems[itemOn].routine &&
+	//    currentMenu->menuitems[itemOn].status == 2)
+	//{
+	//    S_StartSound(NULL,sfx_stnmov);
+	//    currentMenu->menuitems[itemOn].routine(0);
+	//}
+	//return true;
+	//	
+ //     case SDL_SCANCODE_RIGHT:
+	//if (currentMenu->menuitems[itemOn].routine &&
+	//    currentMenu->menuitems[itemOn].status == 2)
+	//{
+	//    S_StartSound(NULL,sfx_stnmov);
+	//    currentMenu->menuitems[itemOn].routine(1);
+	//}
+	//return true;
 
-      case KEY_ENTER:
-	if (currentMenu->menuitems[itemOn].routine &&
-	    currentMenu->menuitems[itemOn].status)
-	{
-	    currentMenu->lastOn = itemOn;
-	    if (currentMenu->menuitems[itemOn].status == 2)
-	    {
-		currentMenu->menuitems[itemOn].routine(1);      // right arrow
-		S_StartSound(NULL,sfx_stnmov);
-	    }
-	    else
-	    {
-		currentMenu->menuitems[itemOn].routine(itemOn);
-		S_StartSound(NULL,sfx_pistol);
-	    }
-	}
-	return true;
-		
-      case KEY_CONSOLE:
-           currentMenu->lastOn = itemOn;
-           M_ClearMenus ();
-           return true;
-		
-      case KEY_ESCAPE:
-	currentMenu->lastOn = itemOn;
-	M_ClearMenus ();
-	S_StartSound(NULL,sfx_swtchx);
-	return true;
-		
-      case KEY_BACKSPACE:
-	currentMenu->lastOn = itemOn;
-	if (currentMenu->prevMenu)
-	{
-	    currentMenu = currentMenu->prevMenu;
-	    itemOn = currentMenu->lastOn;
-	    S_StartSound(NULL,sfx_swtchn);
-	}
-	return true;
-	
-      default:
-	for (i = itemOn+1;i < currentMenu->numitems;i++)
-	    if (currentMenu->menuitems[i].alphaKey == ch)
-	    {
-		itemOn = i;
-		S_StartSound(NULL,sfx_pstop);
-		return true;
-	    }
-	for (i = 0;i <= itemOn;i++)
-	    if (currentMenu->menuitems[i].alphaKey == ch)
-	    {
-		itemOn = i;
-		S_StartSound(NULL,sfx_pstop);
-		return true;
-	    }
-	break;
-	
-    }
+ //     case SDL_SCANCODE_RETURN:
+	//if (currentMenu->menuitems[itemOn].routine &&
+	//    currentMenu->menuitems[itemOn].status)
+	//{
+	//    currentMenu->lastOn = itemOn;
+	//    if (currentMenu->menuitems[itemOn].status == 2)
+	//    {
+	//	currentMenu->menuitems[itemOn].routine(1);      // right arrow
+	//	S_StartSound(NULL,sfx_stnmov);
+	//    }
+	//    else
+	//    {
+	//	currentMenu->menuitems[itemOn].routine(itemOn);
+	//	S_StartSound(NULL,sfx_pistol);
+	//    }
+	//}
+	//return true;
+	//	
+ //     /*case 
+ //     
+ //     
+ //     
+ //     
+ //     CONSOLE:
+ //          currentMenu->lastOn = itemOn;
+ //          M_ClearMenus ();
+ //          return true;*/
+	//	
+ //     case SDL_SCANCODE_ESCAPE:
+	//currentMenu->lastOn = itemOn;
+	//M_ClearMenus ();
+	//S_StartSound(NULL,sfx_swtchx);
+	//return true;
+	//	
+ //     case SDL_SCANCODE_BACKSPACE:
+	//currentMenu->lastOn = itemOn;
+	//if (currentMenu->prevMenu)
+	//{
+	//    currentMenu = currentMenu->prevMenu;
+	//    itemOn = currentMenu->lastOn;
+	//    S_StartSound(NULL,sfx_swtchn);
+	//}
+	//return true;
+	//
+ //     default:
+	//for (i = itemOn+1;i < currentMenu->numitems;i++)
+	//    if (currentMenu->menuitems[i].alphaKey == ch)
+	//    {
+	//	itemOn = i;
+	//	S_StartSound(NULL,sfx_pstop);
+	//	return true;
+	//    }
+	//for (i = 0;i <= itemOn;i++)
+	//    if (currentMenu->menuitems[i].alphaKey == ch)
+	//    {
+	//	itemOn = i;
+	//	S_StartSound(NULL,sfx_pstop);
+	//	return true;
+	//    }
+	//break;
+	//
+ //   }
 
-    return false;
-*/
+ //   return false;
+
 }
 
 
@@ -6583,7 +6356,7 @@ void SaveResources()
 //
 void M_Init (void)
    {
-    int      i;
+    int i;
 
     currentMenu = &MainDef;
     menuactive = 0;
@@ -6599,46 +6372,37 @@ void M_Init (void)
     // Here we could catch other version dependencies,
     //  like HELP1/2, and four episodes.
 
+    if (gamemode == retail)
+    {
+        MainMenu[readthis].routine = M_ReadThis2;
+        ReadDef2.prevMenu = NULL;
+    }
   
-    switch ( gamemode )
-       {
-        case commercial:
-             // This is used because DOOM 2 had only one HELP
-             //  page. I use CREDIT as second page now, but
-             //  kept this hack for educational purposes.
-             MainMenu[readthis] = MainMenu[quitdoom];
-             MainDef.numitems--;
-             MainDef.y += 8;
-             NewDef.prevMenu = &MainDef;
-             //ReadDef1.routine = M_DrawReadThis1;
-             ReadDef1.routine = GL_DrawReadThis1;
-             ReadDef1.x = 330;
-             ReadDef1.y = 165;
-             ReadMenu1[0].routine = M_FinishReadThis;
-             break;
-        case shareware:
-             // Episode 2 and 3 are handled,
-             //  branching to an ad screen.
-        case registered:
-             // We need to remove the fourth episode.
-             EpiDef.numitems--;
-             break;
-        case retail:
-             // We are fine.
-        default:
-             break;
-       }
+    if (gamemode == commercial)
+    {
+        MainMenu[readthis] = MainMenu[quitdoom];
+        MainDef.numitems--;
+        MainDef.y += 8;
+        NewDef.prevMenu = &MainDef;
+        ReadDef1.routine = GL_DrawReadThis1;
+        ReadDef1.x = 330;
+        ReadDef1.y = 165;
+        ReadMenu1[0].routine = M_FinishReadThis;
+    }
 
-/*
-    for (i = 0; i < episodetitle, i++)
-       {
-        if (gamemode == commercial) && (i == (episodetitle-1))
-           {
-            break;
-           }
-        glTitles[i].glData->TexName = GL_MakeSpriteTexture(W_CacheLumpName(glTitles[i].lumpname,PU_CACHE), glTitles[i].glData, false);
-       }
-*/
+    // [crispy] Sigil
+    if (!haved1e5)
+    {
+        EpiDef.numitems = 4;
+    }
+
+    // Versions of doom.exe before the Ultimate Doom release only had
+    // three episodes
+    if (gamemode < retail)
+    {
+        EpiDef.numitems--;
+    }
+
     GL_MakeScreenTexture(W_CacheLumpName("TITLEPIC", PU_CACHE), glTitlePic);
     GL_MakeScreenTexture(W_CacheLumpName("CREDIT", PU_CACHE), glCredit);
     if (W_CheckNumForName("HELP") != -1)

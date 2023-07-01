@@ -23,67 +23,7 @@
 #ifndef __SOUNDS__
 #define __SOUNDS__
 
-
-//
-// SoundFX struct.
-//
-typedef struct sfxinfo_struct	sfxinfo_t;
-
-struct sfxinfo_struct
-{
-    // up to 6-character name
-    char*	name;
-
-    // Sfx singularity (only one at a time)
-    int		singularity;
-
-    // Sfx priority
-    int		priority;
-
-    // referenced sound if a link
-    sfxinfo_t*	link;
-
-    // pitch if a link
-    int		pitch;
-
-    // volume if a link
-    int		volume;
-
-    // sound data
-    void*	data;
-
-    // this is checked every second to see if sound
-    // can be thrown out (if 0, then decrement, if -1,
-    // then throw out, if > 0, then it is in use)
-    int		usefulness;
-
-    // lump number of sfx
-    int		lumpnum;		
-};
-
-
-
-
-//
-// MusicInfo struct.
-//
-typedef struct
-{
-    // up to 6-character name
-    char*	name;
-
-    // lump number of music
-    int		lumpnum;
-    
-    // music data
-    void*	data;
-
-    // music handle once registered
-    int handle;
-    
-} musicinfo_t;
-
-
+#include "i_sound.h"
 
 
 // the complete set of sound effects
@@ -126,6 +66,29 @@ typedef enum
     mus_e3m7,
     mus_e3m8,
     mus_e3m9,
+
+    // [crispy] support dedicated music tracks for the 4th episode
+    mus_e4m1,
+    mus_e4m2,
+    mus_e4m3,
+    mus_e4m4,
+    mus_e4m5,
+    mus_e4m6,
+    mus_e4m7,
+    mus_e4m8,
+    mus_e4m9,
+
+    // [crispy] Sigil
+    mus_e5m1,
+    mus_e5m2,
+    mus_e5m3,
+    mus_e5m4,
+    mus_e5m5,
+    mus_e5m6,
+    mus_e5m7,
+    mus_e5m8,
+    mus_e5m9,
+
     mus_inter,
     mus_intro,
     mus_bunny,

@@ -64,6 +64,29 @@ musicinfo_t S_music[] =
     { "e3m7", 0 },
     { "e3m8", 0 },
     { "e3m9", 0 },
+
+    // [crispy] support dedicated music tracks for the 4th episode
+    { "e4m1", 0 },
+    { "e4m2", 0 },
+    { "e4m3", 0 },
+    { "e4m4", 0 },
+    { "e4m5", 0 },
+    { "e4m6", 0 },
+    { "e4m7", 0 },
+    { "e4m8", 0 },
+    { "e4m9", 0 },
+
+    // [crispy] Sigil
+    { "e5m1", 0 },
+    { "e5m2", 0 },
+    { "e5m3", 0 },
+    { "e5m4", 0 },
+    { "e5m5", 0 },
+    { "e5m6", 0 },
+    { "e5m7", 0 },
+    { "e5m8", 0 },
+    { "e5m9", 0 },
+
     { "inter", 0 },
     { "intro", 0 },
     { "bunny", 0 },
@@ -201,7 +224,7 @@ sfxinfo_t S_sfx[] =
   { "punch", false, 64, 0, -1, -1, 0 },
   { "hoof", false, 70, 0, -1, -1, 0 },
   { "metal", false, 70, 0, -1, -1, 0 },
-  { "chgun", false, 64, &S_sfx[sfx_pistol], 150, 0, 0 },
+  { "chgun", false, 64, /*&S_sfx[sfx_pistol]*/-1, 150, 0, 0},
   { "tink", false, 60, 0, -1, -1, 0 },
   { "bdopn", false, 100, 0, -1, -1, 0 },
   { "bdcls", false, 100, 0, -1, -1, 0 },

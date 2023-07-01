@@ -19,18 +19,14 @@
 //
 //-----------------------------------------------------------------------------
 
-
 #ifndef __M_FIXED__
 #define __M_FIXED__
-
 
 #ifdef __GNUG__
 #pragma interface
 #endif
 
-
 #include <stdint.h>
-
 
 //
 // Fixed point, 32bit as 16.16.
@@ -43,19 +39,12 @@ typedef int32_t fixed_t;
 #define FIXED_MAX   INT32_MAX
 #define FIXED_MIN   INT32_MIN
 
-fixed_t FixedMul	(fixed_t a, fixed_t b);
-fixed_t FixedDiv	(fixed_t a, fixed_t b);
-fixed_t FixedDiv2	(fixed_t a, fixed_t b);
+fixed_t FixedMul(fixed_t a, fixed_t b);
+fixed_t FixedDiv(fixed_t a, fixed_t b);
 
 #define FIXED_TO_FLOAT_MULT    (1.0f / ((float)FRACUNIT))
 #define FIXED_TO_FLOAT(x)      (((float)(x)) * FIXED_TO_FLOAT_MULT)
 
 #define FLOAT_TO_FIXED(x)      ((fixed_t)((x) * (float)(FRACUNIT))
 
-
 #endif
-//-----------------------------------------------------------------------------
-//
-// $Log:$
-//
-//-----------------------------------------------------------------------------

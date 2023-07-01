@@ -25,10 +25,12 @@
 static const char
 rcsid[] = "$Id: p_setup.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 
-#include <windows.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
+//#include <windows.h>
+//#include <gl/gl.h>
+//#include <gl/glu.h>
+#include "thirdparty/glad/include/glad/glad.h"
 #include <math.h>
+#include <stdlib.h>
 
 #include "z_zone.h"
 
@@ -46,12 +48,12 @@ rcsid[] = "$Id: p_setup.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 #include "s_sound.h"
 
 #include "doomstat.h"
-#include "sys_win.h"
+#include "sys_sdl.h"
 #include "gldefs.h"
+#include <memory.h>
 
 #include "info.h"
 
-#include "gconsole.h"
 #include "doomlib.h"
 #include "mathlib.h"
 
@@ -615,12 +617,12 @@ P_SetupLevel
 #if 0 // UNUSED
     if (debugfile)
     {
-	    Z_FreeTags(PU_LEVEL, MAXINT);
+	    Z_FreeTags(PU_LEVEL, PU_PURGELEVEL - 1);
 	    Z_FileDumpHeap(debugfile);
     }
     else
 #endif
-	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL-1);
+	Z_FreeTags(PU_LEVEL, PU_PURGELEVEL);
 
 
     // UNUSED W_Profile ();
@@ -723,6 +725,7 @@ float InnerProduct(float *f, float *m, float *e);
 
 RECT              *SectorBBox = 0;
 
+// keeps track which walls (side) or flats are visible
 drawside_t        *DrawSide           = NULL;
 dboolean          *DrawFlat           = NULL;
 sector_plane_t   **sorted_flats       = NULL;
@@ -730,9 +733,10 @@ int                sorted_flats_count = 0;
 
 
 DW_Vertex3Dv      *Normal = 0;
-DW_TexList         TexList[1024];
+extern DW_TexList         TexList[1024];
 int                TexCount;
 
+// global list of sides, from which sorted_walls/flats are populated
 DW_Polygon        **side_polygons      = NULL;
 DW_Polygon        **sorted_walls       = NULL;
 int                 sorted_walls_count = 0;
@@ -973,7 +977,7 @@ dboolean CheckTexture(char *name)
 
     for (t = 0; t < TexCount; t++)
        {
-        if (D_strcasecmp(name, TexList[t].szName) == 0)
+        if (strcasecmp(name, TexList[t].szName) == 0)
            {
             return true;
            }
@@ -994,7 +998,7 @@ void AddSwitchTextures()
         tname[8] = '\0';
         for (c = 0; c < numswitches; c++)
            {
-            if (D_strcasecmp(tname, alphSwitchList[c].name1) == 0)
+            if (strcasecmp(tname, alphSwitchList[c].name1) == 0)
                {
                 if (CheckTexture(alphSwitchList[c].name2) == false)
                    {
@@ -1011,7 +1015,7 @@ void AddSwitchTextures()
                 break;
                }
             else
-            if (D_strcasecmp(tname, alphSwitchList[c].name2) == 0)
+            if (strcasecmp(tname, alphSwitchList[c].name2) == 0)
                {
                 if (CheckTexture(alphSwitchList[c].name1) == false)
                    {
@@ -1329,7 +1333,7 @@ void CreateNewWalls()
     ZFREE(Normal);
 
     side_polygons      = (DW_Polygon**)malloc(sizeof(DW_Polygon*) * numsides);
-    ZeroMemory(side_polygons, sizeof(DW_Polygon*) * numsides);
+    memset(side_polygons, 0, sizeof(DW_Polygon*) * numsides);
 
     sorted_walls       = (DW_Polygon**)malloc(sizeof(DW_Polygon*) * numsides);
     sorted_walls_count = 0;
@@ -1340,7 +1344,7 @@ void CreateNewWalls()
 
     Normal   = (DW_Vertex3Dv *)malloc(sizeof(DW_Vertex3Dv)*numsides);
     DrawSide = (drawside_t *)malloc(sizeof(drawside_t) * numsides);
-    ZeroMemory(DrawSide, sizeof(drawside_t) * numsides);
+    memset(DrawSide, 0, sizeof(drawside_t) * numsides);
 
 
     for (line = 0; line < numlines; line++)
@@ -1371,7 +1375,7 @@ void CreateNewWalls()
             szCeil[0][8] = '\0';
             strncpy(szCeil[1], lumpinfo[sides[lines[line].sidenum[1]].sector->ceilingpic+firstflat].name, 8);
             szCeil[1][8] = '\0';
-            if ((D_strcasecmp(szCeil[0], "F_SKY1") == 0) && (D_strcasecmp(szCeil[1], "F_SKY1") == 0))
+            if ((strcasecmp(szCeil[0], "F_SKY1") == 0) && (strcasecmp(szCeil[1], "F_SKY1") == 0))
                {
                 SkyCeil = true;
                }
@@ -1384,7 +1388,7 @@ void CreateNewWalls()
             szFloor[0][8] = '\0';
             strncpy(szFloor[1], lumpinfo[sides[lines[line].sidenum[1]].sector->floorpic+firstflat].name, 8);
             szFloor[1][8] = '\0';
-            if ((D_strcasecmp(szFloor[0], "F_SKY1") == 0) && (D_strcasecmp(szFloor[1], "F_SKY1") == 0))
+            if ((strcasecmp(szFloor[0], "F_SKY1") == 0) && (strcasecmp(szFloor[1], "F_SKY1") == 0))
                {
                 SkyFloor = true;
                }
@@ -2081,7 +2085,7 @@ polyvertex_t* PVStore_StoreVertex(polyvertex_t* pv, float bias)
 
 void Poly_ZeroInit(polygon_t* ppoly)
 {
-    ZeroMemory(ppoly, sizeof(polygon_t));
+    memset(ppoly, 0, sizeof(polygon_t));
 }
 
 
@@ -2105,9 +2109,10 @@ void Poly_Move(polygon_t* pfrom, polygon_t* pto)
     FREE(pto->vertexes);
 
     *pto = *pfrom;
-    ZeroMemory(pfrom, sizeof(polygon_t));
+    memset(pfrom, 0, sizeof(polygon_t));
 }
 
+#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 void Poly_AppendFromPoly(
     polygon_t* pfrom, int range_start, int range_size, polygon_t* pto)
@@ -2120,7 +2125,7 @@ void Poly_AppendFromPoly(
     {
         int size = min(pfrom->vertex_count - range_start, range_size);
 
-        CopyMemory(pto->vertexes + pto->vertex_count,
+        memcpy(pto->vertexes + pto->vertex_count,
             pfrom->vertexes + range_start, sizeof(void*) * size);
 
         pto->vertex_count += size;
@@ -2165,7 +2170,7 @@ void Poly_InsertCut(
     polygon_t temp_poly;
 
     temp_poly = *ppoly;
-    ZeroMemory(ppoly, sizeof(polygon_t));
+    memset(ppoly, 0, sizeof(polygon_t));
 
     Poly_SplitCopy(pv1, pv2, &temp_poly, save_range_start, save_range_size, ppoly);
     Poly_Free(&temp_poly);
@@ -2537,10 +2542,10 @@ void CreateNewFlats()
     ZFREE(subsector_planes);
 
     planes = (sector_plane_t*)malloc(sizeof(sector_plane_t) * numsectors);
-    ZeroMemory(planes, sizeof(sector_plane_t) * numsectors);
+    memset(planes, 0, sizeof(sector_plane_t) * numsectors);
 
     subsector_planes = (DW_FloorCeil*)malloc(sizeof(DW_FloorCeil) * numsubsectors);
-    ZeroMemory(subsector_planes, sizeof(DW_FloorCeil) * numsubsectors);
+    memset(subsector_planes, 0, sizeof(DW_FloorCeil) * numsubsectors);
 
 
 #ifdef WDEBUG
@@ -2630,7 +2635,7 @@ void CreateNewFlats()
     {
         pplane = planes + i;
         pplane->subsectors = (DW_FloorCeil**)malloc(sizeof(DW_FloorCeil*) * pplane->ss_count);
-        ZeroMemory(pplane->subsectors, sizeof(DW_FloorCeil*) * pplane->ss_count);
+        memset(pplane->subsectors, 0, sizeof(DW_FloorCeil*) * pplane->ss_count);
         pplane->ss_count = 0;
     }
 
@@ -2858,23 +2863,23 @@ void LoadAllSprites()
     dotmod = numspritelumps/32;
     dotchk = numspritelumps/dotmod;
     
-    con_printf("[%*s]\b", dotchk, " ");
+    printf("[%*s]\b", dotchk, " ");
     for (i = 0; i < dotchk; i++)
        {
         tstr[i] = '\b';
        }
     tstr[i] = '\0';
-    con_printf(tstr);
+    printf(tstr);
     for (lump = 0, dotchk = 0; lump < numspritelumps; lump++)
        {
         dotchk++;
         if ((dotchk % dotmod) == 0)
            {
-            con_printf(".");
+            printf(".");
            }
         SprData[lump].TexName = GL_MakeSpriteTexture(W_CacheLumpNum(firstspritelump+lump,PU_CACHE), &SprData[lump], true);
        }
-    con_printf("\n");
+    printf("\n");
    }
 
 void BuildThingList()

@@ -30,28 +30,23 @@ rcsid[] = "$Id: m_bbox.c,v 1.1 1997/02/03 22:45:10 b1 Exp $";
 
 #include <stdarg.h>
 #include <time.h>
-//#include <unistd.h>
-#include <windows.h>
-#include <mmsystem.h>
 
 #include "doomdef.h"
 #include "m_misc.h"
 #include "i_video.h"
 #include "i_sound.h"
 
-#include "win_inpt.h"
+#include "sdl_inpt.h"
 
 #include "d_net.h"
 #include "g_game.h"
-#include "m_music.h"
 
 #ifdef __GNUG__
 #pragma implementation "i_system.h"
 #endif
 #include "i_system.h"
-#include "sys_win.h"
+#include "sys_sdl.h"
 
-extern windata_t WinData;
 
 int	mb_used = 6;
 
@@ -85,7 +80,10 @@ byte* I_ZoneBase (int*	size)
     return (byte *) malloc (*size);
 }
 
-
+int I_TickElapsedTime(void)
+{
+    return (int64_t)I_GetTime() * TICRATE % 1000 * FRACUNIT / 1000;
+}
 
 //
 // I_GetTime
@@ -97,15 +95,15 @@ int  I_GetTime (void)
 //    struct timeval	tp;
 //    struct timezone	tzp;
     int			newtics;
-    DWORD       currtime;
+    unsigned long       currtime;
     //static int		basetime=0;
-    static DWORD    basetime = 0;
+    static unsigned long    basetime = 0;
   
 //    gettimeofday(&tp, &tzp);
 //    if (!basetime)
 //	basetime = tp.tv_sec;
 //    newtics = (tp.tv_sec-basetime)*TICRATE + tp.tv_usec*TICRATE/1000000;
-    currtime = timeGetTime();
+    currtime = SDL_GetTicks64();
     if (!basetime)
        basetime = currtime;
     newtics = ((currtime-basetime)/(1000/TICRATE));
@@ -120,8 +118,8 @@ int  I_GetTime (void)
 void I_Init (void)
 {
 // FIXME
-    I_InitSound();
-    GetCDInfo(WinData.hWnd);
+    I_InitSound(1);
+    //GetCDInfo();
     I_InitInputs();
     //  I_InitGraphics();
 }
@@ -141,29 +139,19 @@ void I_DeferQuit(void)
 
 void I_Quit(void)
    {
-    lfprintf("Exiting glDoom...\n");
+    lfprintf("Exiting glDoom Re...\n");
     D_QuitNetGame();
     I_ShutdownSound();
     I_ShutdownMusic();
     M_SaveDefaults();
-    //I_ShutdownGraphics();
+    I_ShutdownGraphics();
     glDoomExit();
-    //exit(0);
+    exit(0);
    }
 
 void I_WaitVBL(int count)
 {
-/* FIXME
-#ifdef SGI
-    sginap(1);                                           
-#else
-#ifdef SUN
-    sleep(0);
-#else
-    usleep (count * (1000000/70) );                                
-#endif
-#endif
-*/
+    SDL_Delay(count * 10 );                                
 }
 
 void I_BeginRead(void)
@@ -207,6 +195,7 @@ void I_Error (char *error, ...)
     vsprintf (MsgText,error,argptr);
     lfprintf(MsgText);
     //fprintf (stderr, "\n");
+    printf(MsgText);
     lfprintf("\n");
     va_end (argptr);
 
@@ -220,7 +209,7 @@ void I_Error (char *error, ...)
 
     I_Quit();
 
-    //I_ShutdownGraphics();
+    I_ShutdownGraphics();
     
     GameMode = GAME_QUIT;
     //exit(-1);

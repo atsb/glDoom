@@ -27,16 +27,20 @@
 static const char
 rcsid[] = "$Id: m_misc.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 
-#include <windows.h>
-#include <gl/gl.h>
+#include "thirdparty/SDL2/include/SDL.h"
+#include "thirdparty/glad/include/glad/glad.h"
 
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <io.h>
-//#include <unistd.h>
-#include <direct.h>
+
+#ifdef _WIN32
+    #include <io.h>
+#else
+    #include <inttypes.h>
+    #include <unistd.h>
+#endif
 
 #include <ctype.h>
 
@@ -65,7 +69,7 @@ rcsid[] = "$Id: m_misc.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 #include "m_misc.h"
 
 #include "gldefs.h"
-#include "sys_win.h"
+#include "sys_sdl.h"
 
 #include "doomcmd.h"
 
@@ -177,13 +181,13 @@ int M_GetFileSize( char const*	name )
     int		handle;
     int		count;
 	
-    handle = _open ( name, O_RDWR | O_BINARY);
+    handle = Open ( name, O_RDWR | O_BINARY);
 
     if (handle == -1)
         return 0;
 
-    count = _lseek(handle, 0, SEEK_END);
-    _close (handle);
+    count = LSeek(handle, 0, SEEK_END);
+    Close (handle);
 	
     return count;
    }
@@ -200,13 +204,13 @@ M_WriteFile
     int		handle;
     int		count;
 	
-    handle = _open ( name, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
+    handle = Open ( name, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
 
     if (handle == -1)
 	return false;
 
-    count = _write (handle, source, length);
-    _close (handle);
+    count = Write (handle, source, length);
+    Close (handle);
 	
     if (count < length)
 	return false;
@@ -222,15 +226,15 @@ dboolean M_AppendFile(char const *name, void *source, int length )
     int		handle;
     int		count;
 	
-    handle = _open( name, O_RDWR | O_BINARY);
+    handle = Open( name, O_RDWR | O_BINARY);
 
     if (handle == -1)
         return false;
 
-    _lseek(handle, 0L, SEEK_END);
+    LSeek(handle, 0L, SEEK_END);
 
-    count = _write (handle, source, length);
-    _close (handle);
+    count = Write (handle, source, length);
+    Close (handle);
 	
     if (count < length)
         return false;
@@ -251,15 +255,15 @@ M_ReadFile
     struct stat	fileinfo;
     byte		*buf;
 	
-    handle = _open (name, O_RDONLY | O_BINARY, 0666);
+    handle = Open (name, O_RDONLY | O_BINARY, 0666);
     if (handle == -1)
 	I_Error ("Couldn't read file %s", name);
     if (fstat (handle,&fileinfo) == -1)
 	I_Error ("Couldn't read file %s", name);
     length = fileinfo.st_size;
     buf = Z_Malloc (length, PU_STATIC, NULL);
-    count = _read (handle, buf, length);
-    _close (handle);
+    count = Read (handle, buf, length);
+    Close (handle);
 	
     if (count < length)
 	I_Error ("Couldn't read file %s", name);
@@ -273,7 +277,7 @@ M_ReadFile
 // DEFAULTS
 //
 int		usemouse;
-int		usejoystick;
+//int		usejoystick;
 
 char  playername[18];
 char  playerskin[18];
@@ -326,48 +330,6 @@ extern int  vsync;
 
 extern char gamename[128];
 extern int  hudmode;
-
-extern int	joybfire;
-extern int	joybstrafe;
-extern int	joybuse;
-extern int	joybspeed;
-
-extern int  joydead;
-
-extern int  joyb[32];
-
-extern int  joyb1;
-extern int  joyb2;
-extern int  joyb3;
-extern int  joyb4;
-extern int  joyb5;
-extern int  joyb6;
-extern int  joyb7;
-extern int  joyb8;
-extern int  joyb9;
-extern int  joyb10;
-extern int  joyb11;
-extern int  joyb12;
-extern int  joyb13;
-extern int  joyb14;
-extern int  joyb15;
-extern int  joyb16;
-extern int  joyb17;
-extern int  joyb18;
-extern int  joyb19;
-extern int  joyb20;
-extern int  joyb21;
-extern int  joyb22;
-extern int  joyb23;
-extern int  joyb24;
-extern int  joyb25;
-extern int  joyb26;
-extern int  joyb27;
-extern int  joyb28;
-extern int  joyb29;
-extern int  joyb30;
-extern int  joyb31;
-extern int  joyb32;
 
 extern int	viewwidth;
 extern int	viewheight;
@@ -491,9 +453,9 @@ typedef enum { d_string, d_key, d_value, d_finished } deftype_t;
 typedef struct
    {
     deftype_t   deftype;
-    LPCTSTR     name;
-    LPTSTR      contents;
-    LPCTSTR     defvalue;
+    char*     name;
+    char*     contents;
+    char*     defvalue;
     int         max;
    }win_defaults_t;
 
@@ -529,34 +491,34 @@ win_defaulti_t wdefaultv[] =
     d_value, "mouse_horizontal", &mouseHorizontal,    10,
     d_value, "mouse_vertical",   &mouseVertical,      10,
     d_value, "mouse_sensitivity",&mouseSensitivity,   5,
-    d_value, "sfx_volume",       &snd_SfxVolume,      8,
-    d_value, "music_volume",     &snd_MusicVolume,    8,
+    d_value, "sfx_volume",       &snd_SfxVolume,      15,
+    d_value, "music_volume",     &snd_MusicVolume,    15,
     d_value, "show_messages",    &showMessages,       1,
     
-    d_key,   "key_fire",         &key_fire,           KEY_RCTRL,
-    d_key,   "key_use",          &key_use,            KEY_SPACE,
-    d_key,   "key_strafe",       &key_strafe,         KEY_RALT,
-    d_key,   "key_speed",        &key_speed,          KEY_RSHIFT,
+    d_key,   "key_fire",         &key_fire,           SDL_SCANCODE_LCTRL,
+    d_key,   "key_use",          &key_use,            SDL_SCANCODE_SPACE,
+    d_key,   "key_strafe",       &key_strafe,         SDL_SCANCODE_RALT,
+    d_key,   "key_speed",        &key_speed,          SDL_SCANCODE_LSHIFT,
 
-    d_key,   "key_right",        &key_right,          KEY_RIGHTARROW,
-    d_key,   "key_left",         &key_left,           KEY_LEFTARROW,
-    d_key,   "key_up",           &key_up,             KEY_UPARROW,
-    d_key,   "key_down",         &key_down,           KEY_DOWNARROW,
+    d_key,   "key_right",        &key_right,          SDL_SCANCODE_RIGHT,
+    d_key,   "key_left",         &key_left,           SDL_SCANCODE_LEFT,
+    d_key,   "key_up",           &key_up,             SDL_SCANCODE_W,
+    d_key,   "key_down",         &key_down,           SDL_SCANCODE_S,
 
-    d_key,   "key_strafeleft",   &key_strafeleft,     KEY_COMMA,
-    d_key,   "key_straferight",  &key_straferight,    KEY_PERIOD,
+    d_key,   "key_strafeleft",   &key_strafeleft,     SDL_SCANCODE_A,
+    d_key,   "key_straferight",  &key_straferight,    SDL_SCANCODE_D,
 
-    d_key,   "key_lookup",       &key_lookup,         KEY_DECIMAL,
-    d_key,   "key_lookdown",     &key_lookdown,       KEY_NUMPAD3,
-    d_key,   "key_mlook",        &key_mlook,          KEY_M,
+    d_key,   "key_lookup",       &key_lookup,         SDL_SCANCODE_KP_DECIMAL,
+    d_key,   "key_lookdown",     &key_lookdown,       SDL_SCANCODE_KP_3,
+    d_key,   "key_mlook",        &key_mlook,          SDL_SCANCODE_M,
 
-    d_key,   "key_mvert",        &key_mvert,          KEY_SLASH,
+    d_key,   "key_mvert",        &key_mvert,          SDL_SCANCODE_SLASH,
 
     d_value, "mouse_factor",     &mouse_factor,       1,
     d_value, "autorun",          &autorun,            0,
     d_value, "nosound",          &nosound_t,          0,
     d_value, "mvert",            &mvert,              1,
-    d_value, "mlook",            &mlook,              0,
+    d_value, "mlook",            &mlook,              1,
     d_value, "keylink",          &keylink,            1,
     d_value, "gl_fog",           &gl_fog,             1,
     d_value, "gl_poffsetf",      &gl_poffsetf,        255,
@@ -577,199 +539,76 @@ win_defaulti_t wdefaultv[] =
     d_key,   "mouseb1",          &mouseb1,            CMD_NULL,
     d_key,   "mouseb2",          &mouseb2,            CMD_NULL,
     d_key,   "mouseb3",          &mouseb3,            CMD_NULL,
-
-    // Joystick control/setup
-    d_value, "use_joystick",     &usejoystick,        0,  // defaults to false
-    d_value, "joyb_fire",        &joybfire,           0,
-    d_value, "joyb_strafe",      &joybstrafe,         1,
-    d_value, "joyb_use",         &joybuse,            2,
-    d_value, "joyb_speed",       &joybspeed,          3,
-    d_value, "joydead",          &joydead,            5000,            
-
-    d_key, "joyb1",              &joyb1,              KEY_RCTRL,
-    d_key, "joyb2",              &joyb2,              KEY_RALT,
-    d_key, "joyb3",              &joyb3,              KEY_SPACE,
-    d_key, "joyb4",              &joyb4,              KEY_RSHIFT,
-    d_key, "joyb5",              &joyb5,              CMD_NULL,
-    d_key, "joyb6",              &joyb6,              CMD_NULL,
-    d_key, "joyb7",              &joyb7,              CMD_NULL,
-    d_key, "joyb8",              &joyb8,              CMD_NULL,
-    d_key, "joyb9",              &joyb9,              CMD_NULL,
-    d_key, "joyb10",             &joyb10,             CMD_NULL,
-    d_key, "joyb11",             &joyb11,             CMD_NULL,
-    d_key, "joyb12",             &joyb12,             CMD_NULL,
-    d_key, "joyb13",             &joyb13,             CMD_NULL,
-    d_key, "joyb14",             &joyb14,             CMD_NULL,
-    d_key, "joyb15",             &joyb15,             CMD_NULL,
-    d_key, "joyb16",             &joyb16,             CMD_NULL,
-    d_key, "joyb17",             &joyb17,             CMD_NULL,
-    d_key, "joyb18",             &joyb18,             CMD_NULL,
-    d_key, "joyb19",             &joyb19,             CMD_NULL,
-    d_key, "joyb20",             &joyb20,             CMD_NULL,
-    d_key, "joyb21",             &joyb21,             CMD_NULL,
-    d_key, "joyb22",             &joyb22,             CMD_NULL,
-    d_key, "joyb23",             &joyb23,             CMD_NULL,
-    d_key, "joyb24",             &joyb24,             CMD_NULL,
-    d_key, "joyb25",             &joyb25,             CMD_NULL,
-    d_key, "joyb26",             &joyb26,             CMD_NULL,
-    d_key, "joyb27",             &joyb27,             CMD_NULL,
-    d_key, "joyb28",             &joyb28,             CMD_NULL,
-    d_key, "joyb29",             &joyb29,             CMD_NULL,
-    d_key, "joyb30",             &joyb30,             CMD_NULL,
-    d_key, "joyb31",             &joyb31,             CMD_NULL,
-    d_key, "joyb32",             &joyb32,             CMD_NULL,
-
-    // These values are not useful for OpenGL rendering
-    //d_value, "screenblocks",         &screenblocks,         11,   // 0 - 11 (11 is fullscreen)
-    //d_value, "detaillevel",          &detaillevel,          0,    // 0 - 1
-    //d_value, "usegamma",             &usegamma,             0,    // 0 - 4
-
-    // These values are not useful for DirectSound
-    d_value, "snd_channels",     &numChannels,        16,
     d_value, "swap_stereo",      &swap_stereo,        0,
 
     // "new" keyboard mappings
-    d_key, "key_escape",         &key_escape,         KEY_ESCAPE,
-    d_key, "key_autorun",        &key_autorun,        KEY_CAPITAL,
-    d_key, "key_reverse",        &key_reverse,        KEY_BACKSPACE,
-    d_key, "key_zoomin",         &key_zoomin,         KEY_EQUALS,
-    d_key, "key_zoomout",        &key_zoomout,        KEY_MINUS,
-    d_key, "key_chat",           &key_chat,           KEY_T,
-    d_key, "key_backspace",      &key_backspace,      KEY_BACKSPACE,
-    d_key, "key_enter",          &key_enter,          KEY_ENTER,
-    d_key, "key_help",           &key_help,           KEY_F1,
-    d_key, "key_savegame",       &key_savegame,       KEY_F2,
-    d_key, "key_loadgame",       &key_loadgame,       KEY_F3,
-    d_key, "key_soundvolume",    &key_soundvolume,    KEY_F4,
+    d_key, "key_escape",         &key_escape,        SDL_SCANCODE_ESCAPE,
+    //d_key, "key_autorun",        &key_autorun,        SDL_SCANCODE_F2,
+    d_key, "key_reverse",        &key_reverse,        SDL_SCANCODE_BACKSPACE,
+    d_key, "key_zoomin",         &key_zoomin,         SDL_SCANCODE_EQUALS,
+    d_key, "key_zoomout",        &key_zoomout,        SDL_SCANCODE_MINUS,
+    d_key, "key_chat",           &key_chat,           SDL_SCANCODE_T,
+    d_key, "key_backspace",      &key_backspace,      SDL_SCANCODE_BACKSPACE,
+    d_key, "key_enter",          &key_enter,          SDL_SCANCODE_RETURN,
+    d_key, "key_help",           &key_help,           SDL_SCANCODE_F1,
+    d_key, "key_savegame",       &key_savegame,       SDL_SCANCODE_F2,
+    d_key, "key_loadgame",       &key_loadgame,       SDL_SCANCODE_F3,
+    d_key, "key_soundvolume",    &key_soundvolume,    SDL_SCANCODE_F4,
 //    d_key, "key_hud",            &key_hud,            KEY_F5,
-    d_key, "key_quicksave",      &key_quicksave,      KEY_F6,
-    d_key, "key_endgame",        &key_endgame,        KEY_F7,
-    d_key, "key_messages",       &key_messages,       KEY_F8,
-    d_key, "key_quickload",      &key_quickload,      KEY_F9,
-    d_key, "key_quit",           &key_quit,           KEY_F10,
+    d_key, "key_quicksave",      &key_quicksave,      SDL_SCANCODE_F6,
+    d_key, "key_endgame",        &key_endgame,        SDL_SCANCODE_F7,
+    d_key, "key_messages",       &key_messages,       SDL_SCANCODE_F8,
+    d_key, "key_quickload",      &key_quickload,      SDL_SCANCODE_F9,
+    d_key, "key_quit",           &key_quit,           SDL_SCANCODE_F10,
 //    d_key, "key_gamma",          &key_gamma,          KEY_F11,
-    d_key, "key_screenshot",     &key_screenshot,     KEY_F12,
+    d_key, "key_screenshot",     &key_screenshot,     SDL_SCANCODE_F12,
 
-    d_key, "key_pause",          &key_pause,          KEY_PAUSE,
-    d_key, "key_forward",        &key_forward,        KEY_UPARROW,
-    d_key, "key_leftturn",       &key_leftturn,       KEY_LEFTARROW,
-    d_key, "key_rightturn",      &key_rightturn,      KEY_RIGHTARROW,
-    d_key, "key_backward",       &key_backward,       KEY_DOWNARROW,
+    d_key, "key_pause",          &key_pause,          SDL_SCANCODE_PAUSE,
+    d_key, "key_forward",        &key_forward,        SDL_SCANCODE_UP,
+    d_key, "key_leftturn",       &key_leftturn,       SDL_SCANCODE_LEFT,
+    d_key, "key_rightturn",      &key_rightturn,      SDL_SCANCODE_RIGHT,
+    d_key, "key_backward",       &key_backward,       SDL_SCANCODE_DOWN,
 
-    d_key, "key_weapon1",        &key_weapon1,        KEY_1,
-    d_key, "key_weapon2",        &key_weapon2,        KEY_2,
-    d_key, "key_weapon3",        &key_weapon3,        KEY_3,
-    d_key, "key_weapon4",        &key_weapon4,        KEY_4,
-    d_key, "key_weapon5",        &key_weapon5,        KEY_5,
-    d_key, "key_weapon6",        &key_weapon6,        KEY_6,
-    d_key, "key_weapon7",        &key_weapon7,        KEY_7,
-    d_key, "key_weapon8",        &key_weapon8,        KEY_8,
-    d_key, "key_weapon9",        &key_weapon9,        KEY_9,
+    d_key, "key_weapon1",        &key_weapon1,        SDL_SCANCODE_1,
+    d_key, "key_weapon2",        &key_weapon2,        SDL_SCANCODE_2,
+    d_key, "key_weapon3",        &key_weapon3,        SDL_SCANCODE_3,
+    d_key, "key_weapon4",        &key_weapon4,        SDL_SCANCODE_4,
+    d_key, "key_weapon5",        &key_weapon5,        SDL_SCANCODE_5,
+    d_key, "key_weapon6",        &key_weapon6,        SDL_SCANCODE_6,
+    d_key, "key_weapon7",        &key_weapon7,        SDL_SCANCODE_7,
+    d_key, "key_weapon8",        &key_weapon8,        SDL_SCANCODE_8,
+    d_key, "key_weapon9",        &key_weapon9,        SDL_SCANCODE_9,
 
-    d_key, "key_map_right",      &key_map_right,      KEY_RIGHTARROW,
-    d_key, "key_map_left",       &key_map_left,       KEY_LEFTARROW,
-    d_key, "key_map_up",         &key_map_up,         KEY_UPARROW,
-    d_key, "key_map_down",       &key_map_down,       KEY_DOWNARROW,
-    d_key, "key_map_zoomin",     &key_map_zoomin,     KEY_EQUALS,
-    d_key, "key_map_zoomout",    &key_map_zoomout,    KEY_MINUS,
-    d_key, "key_map",            &key_map,            KEY_TAB,
-    d_key, "key_map_gobig",      &key_map_gobig,      KEY_0,
-    d_key, "key_map_follow",     &key_map_follow,     KEY_F,
-    d_key, "key_map_mark",       &key_map_mark,       KEY_M,
-    d_key, "key_map_clear",      &key_map_clear,      KEY_C,
-    d_key, "key_map_grid",       &key_map_grid,       KEY_G, 
+    d_key, "key_map_right",      &key_map_right,      SDL_SCANCODE_RIGHT,
+    d_key, "key_map_left",       &key_map_left,       SDL_SCANCODE_LEFT,
+    d_key, "key_map_up",         &key_map_up,         SDL_SCANCODE_UP,
+    d_key, "key_map_down",       &key_map_down,       SDL_SCANCODE_DOWN,
+    d_key, "key_map_zoomin",     &key_map_zoomin,     SDL_SCANCODE_EQUALS,
+    d_key, "key_map_zoomout",    &key_map_zoomout,    SDL_SCANCODE_MINUS,
+    d_key, "key_map",            &key_map,            SDL_SCANCODE_TAB,
+    d_key, "key_map_gobig",      &key_map_gobig,      SDL_SCANCODE_0,
+    d_key, "key_map_follow",     &key_map_follow,     SDL_SCANCODE_F,
+    d_key, "key_map_mark",       &key_map_mark,       SDL_SCANCODE_M,
+    d_key, "key_map_clear",      &key_map_clear,      SDL_SCANCODE_C,
+    d_key, "key_map_grid",       &key_map_grid,       SDL_SCANCODE_G, 
 
-    d_key, "key_menu_right",     &key_menu_right,     KEY_RIGHTARROW,
-    d_key, "key_menu_left",      &key_menu_left,      KEY_LEFTARROW,
-    d_key, "key_menu_up",        &key_menu_up,        KEY_UPARROW,
-    d_key, "key_menu_down",      &key_menu_down,      KEY_DOWNARROW,
-    d_key, "key_menu_backspace", &key_menu_backspace, KEY_BACKSPACE,
-    d_key, "key_menu_escape",    &key_menu_escape,    KEY_ESCAPE,
-    d_key, "key_menu_enter",     &key_menu_enter,     KEY_ENTER,
+    d_key, "key_menu_right",     &key_menu_right,     SDL_SCANCODE_RIGHT,
+    d_key, "key_menu_left",      &key_menu_left,      SDL_SCANCODE_LEFT,
+    d_key, "key_menu_up",        &key_menu_up,        SDL_SCANCODE_UP,
+    d_key, "key_menu_down",      &key_menu_down,      SDL_SCANCODE_DOWN,
+    d_key, "key_menu_backspace", &key_menu_backspace, SDL_SCANCODE_BACKSPACE,
+    d_key, "key_menu_escape",    &key_menu_escape,    SDL_SCANCODE_ESCAPE,
+    d_key, "key_menu_enter",     &key_menu_enter,     SDL_SCANCODE_RETURN,
 
-    d_key, "key_hudup",          &key_hudup,          KEY_EQUALS,
-    d_key, "key_huddn",          &key_huddn,          KEY_MINUS,
+    d_key, "key_hudup",          &key_hudup,          SDL_SCANCODE_EQUALS,
+    d_key, "key_huddn",          &key_huddn,          SDL_SCANCODE_MINUS,
 
 
     d_finished, 0, 0, 0
    };
 
-/*
-default_t	defaults[] =
-{
-    {"mouse_sensitivity",&mouseSensitivity, 5},
-    {"sfx_volume",&snd_SfxVolume, 8},
-    {"music_volume",&snd_MusicVolume, 8},
-    {"show_messages",&showMessages, 1},
-    
-
-//#ifdef NORMALUNIX
-    {"key_right",&key_right, KEY_RIGHTARROW},
-    {"key_left",&key_left, KEY_LEFTARROW},
-    {"key_up",&key_up, KEY_UPARROW},
-    {"key_down",&key_down, KEY_DOWNARROW},
-    {"key_strafeleft",&key_strafeleft, ','},
-    {"key_straferight",&key_straferight, '.'},
-
-    {"key_fire",&key_fire, KEY_RCTRL},
-    {"key_use",&key_use, ' '},
-    {"key_strafe",&key_strafe, KEY_RALT},
-    {"key_speed",&key_speed, KEY_RSHIFT},
-
-#ifndef WIN32
-// UNIX hack, to be removed. 
-#ifdef SNDSERV
-    {"sndserver", (int *) &sndserver_filename, (int) "sndserver"},
-    {"mb_used", &mb_used, 2},
-#endif
-#endif
-    
-//#endif
-
-#ifdef LINUX
-    {"mousedev", (int*)&mousedev, (int)"/dev/ttyS0"},
-    {"mousetype", (int*)&mousetype, (int)"microsoft"},
-#endif
-
-    {"use_mouse",&usemouse, 1},
-    {"mouseb_fire",&mousebfire,0},
-    {"mouseb_strafe",&mousebstrafe,1},
-    {"mouseb_forward",&mousebforward,2},
-
-    {"gl_fog",&gl_fog,1},
-    {"gl_alphatest",&gl_alphatest,0},
-    {"gamename", (int *)gamename, (int) ""},
-    {"hudmode",&hudmode,1},
-
-    {"use_joystick",&usejoystick, 0},
-    {"joyb_fire",&joybfire,0},
-    {"joyb_strafe",&joybstrafe,1},
-    {"joyb_use",&joybuse,3},
-    {"joyb_speed",&joybspeed,2},
-
-    {"screenblocks",&screenblocks, 9},
-    {"detaillevel",&detailLevel, 0},
-
-    {"snd_channels",&numChannels, 3},
-
-    {"usegamma",&usegamma, 0},
-
-    {"chatmacro0", (int *) &chat_macros[0], (int) HUSTR_CHATMACRO0 },
-    {"chatmacro1", (int *) &chat_macros[1], (int) HUSTR_CHATMACRO1 },
-    {"chatmacro2", (int *) &chat_macros[2], (int) HUSTR_CHATMACRO2 },
-    {"chatmacro3", (int *) &chat_macros[3], (int) HUSTR_CHATMACRO3 },
-    {"chatmacro4", (int *) &chat_macros[4], (int) HUSTR_CHATMACRO4 },
-    {"chatmacro5", (int *) &chat_macros[5], (int) HUSTR_CHATMACRO5 },
-    {"chatmacro6", (int *) &chat_macros[6], (int) HUSTR_CHATMACRO6 },
-    {"chatmacro7", (int *) &chat_macros[7], (int) HUSTR_CHATMACRO7 },
-    {"chatmacro8", (int *) &chat_macros[8], (int) HUSTR_CHATMACRO8 },
-    {"chatmacro9", (int *) &chat_macros[9], (int) HUSTR_CHATMACRO9 }
-
-};
-*/
-
-int	numdefaults;
-char*	defaultfile;
+int	numdefaults = 134;
+const char* defaultfile = "default.cfg";
 
 char DoomDir[128], szValue[32];
 void GetCfgName(void);
@@ -779,54 +618,30 @@ void GetCfgName(void);
 //
 void M_SaveDefaults (void)
    {
-    int		i;
-/*
+    int		i = 0;
     int		v;
-    FILE*	f;
-*/
-	
-    GetCfgName();
+    FILE* f;
 
-    nosound_t = nosound;
-
-    i = 0;
-    while (wdefaultv[i].deftype != d_finished)
-       {
-        sprintf(szValue, "%d", *wdefaultv[i].location);
-        WritePrivateProfileString("DEFAULTS", wdefaultv[i].name, szValue, DoomDir);
-        i++;
-       }
-
-    i = 0;
-    while (wdefaults[i].deftype != d_finished)
-       {
-        if (wdefaults[i].deftype == d_string)
-           {
-            WritePrivateProfileString("DEFAULTS", wdefaults[i].name, wdefaults[i].contents, DoomDir);
-           }
-        i++;
-       }
-
-    /*
-    f = fopen (defaultfile, "w");
+    f = fopen(defaultfile, "w");
     if (!f)
-	return; // can't write the file, but don't complain
-		
-    for (i=0 ; i<numdefaults ; i++)
+        return; // can't write the file, but don't complain
+
+    while(1)
     {
-	if (defaults[i].defaultvalue > -0xfff
-	    && defaults[i].defaultvalue < 0xfff)
-	{
-	    v = *defaults[i].location;
-	    fprintf (f,"%s\t\t%i\n",defaults[i].name,v);
-	} else {
-	    fprintf (f,"%s\t\t\"%s\"\n",defaults[i].name,
-		     * (char **) (defaults[i].location));
-	}
+        if (wdefaultv[i].deftype == d_finished)
+            break;
+
+        if (wdefaultv[i].defvalue > -0xfff
+            && wdefaultv[i].defvalue < 0xfff)
+        {
+            v = *wdefaultv[i].location;
+            fprintf(f, "%s\t\t%i\n", wdefaultv[i].name, v);
+        }
+
+        i++;
     }
-	
-    fclose (f);
-*/
+
+    fclose(f);
    }
 
 
@@ -837,7 +652,7 @@ extern byte	scantokey[128];
 
 void GetCfgName()
    {
-    char *pbreak = NULL;
+    /*char *pbreak = NULL;
     int   i;
 
     if (strlen(myargv[0]) != 0)
@@ -866,46 +681,84 @@ void GetCfgName()
        }
     WriteProfileString("GLDOOM", "DIRECTORY", DoomDir );
     strcat(DoomDir, "\\GLDoom.INI");
-    i = 0;
+    i = 0;*/
    }
 
-extern windata_t  WinData;
+//extern windata_t  WinData;
 
 void M_LoadDefaults (void)
 {
-    int		i;
-/*
-    int		len;
-    FILE*	f;
+    int		i = 0;
+    int		len = 0;
+    FILE* f;
     char	def[80];
     char	strparm[100];
-    char*	newstring;
+    char* newstring;
     int		parm;
     dboolean	isstring;
-*/    
 
-    GetCfgName();
+    // set everything to base values
+    numdefaults = sizeof(wdefaultv) / sizeof(wdefaultv[0]);
+    for (i = 0; i < numdefaults; i++)
+    {
+        if (wdefaultv[i].deftype == d_finished)
+            break;
 
-    i = 0;
-    while (wdefaultv[i].deftype != d_finished)
-       {
-        *wdefaultv[i].location = GetPrivateProfileInt("DEFAULTS", wdefaultv[i].name, wdefaultv[i].defvalue, DoomDir);
-        i++;
-       }
+        *wdefaultv[i].location = wdefaultv[i].defvalue;
+    }
 
-    i = 0;
-    while (wdefaults[i].deftype != d_finished)
-       {
-        GetPrivateProfileString("DEFAULTS", wdefaults[i].name, wdefaults[i].defvalue,
-                                wdefaults[i].contents, wdefaults[i].max, DoomDir);
-        i++;
-       }
-    //GetPrivateProfileString("MULTIPLAYER", "PLAYERNAME", "PLAYER", playername, 18, DoomDir);
-    i = 0;
+    // check for a custom default file
+    i = M_CheckParm("-config");
+    if (i && i < myargc - 1)
+    {
+        defaultfile = myargv[i + 1];
+        printf("	default file: %s\n", defaultfile);
+    }
+    else
+        defaultfile = basedefault;
 
-    if (nosound == true)
-        nosound_t = nosound;
-   }
+    // read the file in, overriding any set defaults
+    f = fopen(defaultfile, "r");
+    if (f)
+    {
+        while (!feof(f))
+        {
+            isstring = false;
+            if (fscanf(f, "%79s %[^\n]\n", def, strparm) == 2)
+            {
+                if (strparm[0] == '"')
+                {
+                    // get a string default
+                    isstring = true;
+                    //len = strlen(strparm);
+                    //newstring = (char*)malloc(len);
+                    //strparm[len - 1] = 0;
+                    newstring = strparm;
+                }
+                else if (strparm[0] == '0' && strparm[1] == 'x')
+                    sscanf(strparm + 2, "%x", &parm);
+                else
+                    sscanf(strparm, "%i", &parm);
+                for (i = 0; i < numdefaults; i++) {
+                    if (wdefaultv[i].deftype == d_finished)
+                        break;
+
+                    if (!strcmp(def, wdefaultv[i].name))
+                    {
+                        if (!isstring)
+                            *wdefaultv[i].location = parm;
+                        else
+                            *wdefaultv[i].location =
+                            (int)newstring;
+                        break;
+                    }
+                }
+            }
+        }
+
+        fclose(f);
+    }
+ }
 
 /*
 snd_musicdevice		3
@@ -1042,7 +895,7 @@ void WriteTGAFile(char *filename, int width, int height, char *buffer)
     short         *s;
     unsigned char  tgahead[18], *cr, *cb, c;
 
-    if ((fn = _open(filename, O_RDWR | O_BINARY | O_CREAT | O_TRUNC, 0666)) != -1)
+    if ((fn = Open(filename, O_RDWR | O_BINARY | O_CREAT | O_TRUNC, 0666)) != -1)
        {
         memset(tgahead, 0, 18);
         tgahead[tga_imgtype] = 2;
@@ -1062,15 +915,15 @@ void WriteTGAFile(char *filename, int width, int height, char *buffer)
             cr += 3;
             cb += 3;
            }
-        _write(fn, tgahead, 18);
-        _write(fn, buffer, (width*height*3));
-        _close(fn);
+        Write(fn, tgahead, 18);
+        Write(fn, buffer, (width*height*3));
+        Close(fn);
        }
    }
 
 void M_ScreenShot(void)
    {
-    int    fn, i, x, y;
+    int    i;
     char  *buffer, *c;
     char   lbmname[14];
     
@@ -1083,7 +936,7 @@ void M_ScreenShot(void)
 	    lbmname[5] = (i % 1000) / 100 + '0';
 	    lbmname[6] = (i % 100) / 10 + '0';
 	    lbmname[7] = i % 10 + '0';
-	    if (_access(lbmname,0) == -1)
+	    if (Access(lbmname,0) == -1)
             break;	// file doesn't exist
        }
 
