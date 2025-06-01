@@ -1,6 +1,8 @@
 # glDoom Resurrected (again!)
 This repository contains improvements for the glDoom port by Bruce Lewis
 
+![GLDoom Resurrected!](./Resources/DOOM0000.png)
+
 ### Fixes (original from REDPOWAR)
 * new floor/ceiling generation code (similar to code from Doom Legacy port)
 * aspect ratio fix (correct rendering on 16:9 displays)
