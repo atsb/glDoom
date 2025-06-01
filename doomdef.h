@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "thirdparty/SDL2/include/SDL.h"
+#include <SDL2/SDL.h>
 
 //
 // Global parameters/defines.

@@ -18,11 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "thirdparty/SDL2/include/SDL_mixer.h"
-
 #include "doomtype.h"
-
 #include "i_sound.h"
 #include "i_video.h"
 #include "m_argv.h"
@@ -56,7 +52,7 @@ int snd_sfxdevice = SNDDEVICE_SB;
 // Low-level sound and music modules we are using
 static sound_module_t* sound_module;
 static music_module_t* music_module;
-extern music_module_t music_sdl_module;
+extern music_module_t music_fmod_module;
 
 // This is either equal to music_module or &music_pack_module,
 // depending on whether the current track is substituted.
@@ -83,7 +79,7 @@ static sound_module_t* sound_modules[] =
 
 static music_module_t* music_modules[] =
 {
-    &music_sdl_module
+    &music_fmod_module
 };
 
 // Check if a sound device is in the given list of devices

@@ -67,11 +67,11 @@ extern int TexWide, TexHigh;
 #define CONSOLE_FLAT "CEIL5_1"
 #define CONSOLE_BORD "FLAT18"
 #define CONSBORD     2
-#define CONSVERS     96
-#define CONSREV      'C'
+#define CONSVERS     97
+#define CONSREV      'A'
 #define CONSMSGS     64
 
-char szProgName[] = "GLDOOM-RE";
+char szProgName[] = "GLDOOM";
 char szVersion[8];
 
 typedef enum { asleep, sleepy, waking, awake } consolemode;

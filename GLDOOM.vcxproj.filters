@@ -237,7 +237,7 @@
     <ClCompile Include="i_sdlsound.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="i_sdlmusic.c">
+    <ClCompile Include="i_fmodstudiomusic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="gl_wipe.c">

@@ -18,13 +18,12 @@
 //
 // Source code taken from Chocolate Doom github repo: https://github.com/chocolate-doom/chocolate-doom
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "thirdparty/SDL2/include/SDL.h"
-#include "thirdparty/SDL2/include/SDL_mixer.h"
-
 #include "i_sound.h"
 #include "i_system.h"
 #include "m_argv.h"

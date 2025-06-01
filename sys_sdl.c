@@ -10,7 +10,7 @@
 #include <math.h>
 #include <time.h>
 #include <glad/glad.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Application Includes...
@@ -319,9 +319,9 @@ dboolean CreateMainWindow(int width, int height, int bpp, dboolean fullscreen)
         I_Error("Failed to init SDL");
  
 #if _DEBUG
-    sprintf(&window_title, "GLDOOM-RE %d.%d%c - Compiled on %s at %s", version/100, version%100, revision, __DATE__, __TIME__);
+    sprintf(&window_title, "GLDOOM %d.%d%c - Compiled on %s at %s", version/100, version%100, revision, __DATE__, __TIME__);
 #else
-    sprintf(&window_title, "GLDOOM-RE");
+    sprintf(&window_title, "GLDOOM");
 #endif
 
     pWindow = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,

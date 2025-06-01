@@ -4,7 +4,7 @@
 // keyboard, mouse and joystick inputs.
 // This module is for Win32
 
-#include "thirdparty/SDL2/include/SDL.h"
+#include <SDL2/SDL.h>
 #include "d_main.h"
 #include "sys_sdl.h"
 #include "sdl_kbrd.h"
