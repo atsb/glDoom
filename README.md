@@ -10,6 +10,7 @@ This repository contains improvements for the glDoom port by Bruce Lewis
 ### Fixes from Gibbon
 * 64bit cleanups to allow it to build and run on 64bit systems
 * Cleanups for modern types (uintptr_t, intptr_t and MSVC specific functions like (underscore)access etc..)
+* FMOD Studio support and crash fixes
 
 ### Fixes from Losilof39
 * Cleaned up all Win32 code and added a SDL2 backend
@@ -26,18 +27,12 @@ This repository contains improvements for the glDoom port by Bruce Lewis
 * Add ANSI C Implementation in some parts.
 
 ### Current Problems
-* No vertical mouse movement
 * Clipping issue due to changing fov
 * Fullscreen option not working
 * Resolution option not working
 
 ### TO-DO List
-I am planning for this port, the following (in order of priority)
-
-1. Cleanup Win32 Code
-2. Remove all unused code and make code more readable
-3. Write new OpenGL renderer that will use modern features from 4.5 and replace the Legacy one
-4. Increasing the vanilla limits and adding support for No Rest For The Living and SIGIL
+1. Increasing the vanilla limits and adding support for No Rest For The Living and SIGIL
 
 Plus more!
 
